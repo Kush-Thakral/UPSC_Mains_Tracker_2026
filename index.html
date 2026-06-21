@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroPrep Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --border-color: #1f2937;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-yellow: #facc15;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+            --accent-green: #22c55e;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-color); color: var(--text-main); font-family: var(--font-family); min-height: 100vh; }
+
+        /* Navbar & Header */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; border-bottom: 1px solid var(--border-color); background-color: #0b0f19; }
+        .logo-section { display: flex; align-items: center; gap: 15px; }
+        .logo-title { font-size: 1.2rem; font-weight: bold; color: var(--accent-yellow); display: flex; align-items: center; gap: 8px; }
+        .subtitle { color: var(--text-muted); font-size: 0.85rem; }
+        .header-actions { display: flex; gap: 15px; align-items: center; }
+        .badge { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+        .badge.yellow { color: var(--accent-yellow); }
+        .badge.green { color: var(--accent-green); }
+
+        /* Tabs */
+        .nav-tabs { display: flex; gap: 30px; padding: 0 30px; border-bottom: 1px solid var(--border-color); background-color: #0b0f19; }
+        .nav-item { padding: 15px 0; color: var(--text-muted); cursor: pointer; font-size: 0.95rem; border-bottom: 2px solid transparent; }
+        .nav-item.active { color: var(--accent-yellow); border-bottom: 2px solid var(--accent-yellow); }
+
+        /* Containers */
+        .container { padding: 30px; max-width: 1400px; margin: 0 auto; display: none; }
+        .container.active { display: block; }
+
+        /* Dashboard Styles */
+        .hero-banner { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
+        .hero-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
+        .hero-subtitle { color: var(--text-muted); font-size: 0.9rem; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .metric-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; }
+        .metric-title { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .metric-value { font-size: 2rem; font-weight: bold; margin-bottom: 5px; }
+        .metric-sub { color: var(--text-muted); font-size: 0.8rem; }
+        .val-yellow { color: var(--accent-yellow); } .val-blue { color: var(--accent-blue); } .val-purple { color: var(--accent-purple); } .val-green { color: var(--accent-green); }
+        .charts-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .chart-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; }
+        .chart-header { font-size: 1rem; font-weight: bold; margin-bottom: 20px; }
+        .canvas-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; align-items: center; }
+
+        /* Syllabus Tracker Styles */
+        .syllabus-layout { display: flex; gap: 20px; height: 75vh; }
+        .subject-sidebar { width: 250px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-right: 10px; }
+        
+        /* Custom Scrollbar for Sidebar and Table */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+        .subject-btn { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 15px; border-radius: 8px; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+        .subject-btn:hover { border-color: #374151; }
+        .subject-btn.active { border-color: var(--accent-blue); color: var(--text-main); background-color: rgba(59, 130, 246, 0.1); }
+        .subject-content { flex: 1; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; overflow-y: auto; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #1f2937; color: var(--text-muted); padding: 15px; font-size: 0.85rem; font-weight: normal; text-transform: uppercase; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        td { padding: 15px; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: rgba(255, 255, 255, 0.02); }
+        
+        .main-topic { font-weight: bold; color: var(--accent-blue); font-size: 0.85rem; margin-bottom: 4px; display: block; }
+        
+        /* Checkbox styling */
+        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-green); }
+        .status-done { color: var(--accent-green); text-decoration: line-through; opacity: 0.6; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-section">
+            <div class="logo-title">🎯 MicroPrep Tracker</div>
+            <div class="subtitle">Kush • CSE 2026 • Road to LBSNAA</div>
+        </div>
+        <div class="header-actions">
+            <div class="badge yellow">🔥 1 day streak</div>
+            <div class="badge green" id="top-topic-count">📚 0 / 202 topics</div>
+        </div>
+    </header>
+
+    <div class="nav-tabs">
+        <div class="nav-item active" onclick="switchTab('dashboard')">📊 Dashboard</div>
+        <div class="nav-item" onclick="switchTab('syllabus')">📑 Syllabus Tracker</div>
+    </div>
+
+    <div class="container active" id="view-dashboard">
+        <div class="hero-banner">
+            <div style="font-size: 2rem;">🎯</div>
+            <div>
+                <div class="hero-title">UPSC Syllabus Overview — <span id="current-date"></span></div>
+                <div class="hero-subtitle">Track microtopics • Log study hours • Record test scores • Beat yesterday</div>
+            </div>
+        </div>
+
+        <div class="metrics-grid" id="metrics-container">
+            </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">Syllabus Completion %</div>
+                <div class="canvas-container">
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">Subject-Wise Progress</div>
+                <div class="canvas-container">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="view-syllabus">
+        <div class="syllabus-layout">
+            <div class="subject-sidebar" id="subject-sidebar">
+                </div>
+            <div class="subject-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">Done</th>
+                            <th>Topic / Sub-Topic</th>
+                        </tr>
+                    </thead>
+                    <tbody id="syllabus-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. DATA DEFINITION (Exact Extraction from CSV files)
+        // ==========================================
+        const defaultData = {
+            "GS1": [
+                { main: "Salient aspects of Art, Architecture, Literature from Ancient to Modern Times", sub: "Art", status: false },
+                { main: "Salient aspects of Art, Architecture, Literature from Ancient to Modern Times", sub: "Architecture", status: false },
+                { main: "Salient aspects of Art, Architecture, Literature from Ancient to Modern Times", sub: "Literature", status: false },
+                { main: "MIH - Mid-18th century – Present", sub: "Significant events, personalities, issues", status: false },
+                { main: "MIH - Mid-18th century – Present", sub: "Freedom Struggle (various stages, important contributors from different parts of the country)", status: false },
+                { main: "World History", sub: "18th century events (e.g. Ind’l revo, WWs, redrawn boundaries, colonisation, decolonisation);", status: false },
+                { main: "World History", sub: "Political philosophies (e.g. communism, capitalism, socialism) and their effect on society", status: false },
+                { main: "Post-Independence (consolidation and reorganisation within country)", sub: "Consolidation & Reorganisation", status: false },
+                { main: "Society", sub: "Salient Features", status: false },
+                { main: "Society", sub: "Diversity of India , Globalisation", status: false },
+                { main: "Society", sub: "Role of women and womens organisation", status: false },
+                { main: "Society", sub: "Urbanisation", status: false },
+                { main: "Society", sub: "Population and associated issues", status: false },
+                { main: "Society", sub: "Poverty & developmental issues", status: false },
+                { main: "Society", sub: "Communalism, Regionalism, Secularism; Social Empowerment", status: false },
+                { main: "World & Human Geography", sub: "World physical geography salient features", status: false },
+                { main: "World & Human Geography", sub: "Distribution of key natural resources across the world (including South Asia and the Indian sub continent)", status: false },
+                { main: "World & Human Geography", sub: "Factors responsible for the location of primary, secondary, and tertiary sector industries in various parts of the world (including India).", status: false },
+                { main: "Physical Geography", sub: "Critical geographical features (including water bodies , ice caps) , flora, fauna (location changes and effects therof)", status: false },
+                { main: "Physical Geography", sub: "Salient Features of World Physical Geography; Important Geophysical phenomena (earthquakes, tsunami, volcanoes, cyclones); Geographical features and location;", status: false }
+            ],
+            "GS2": [
+                { main: "Polity", sub: "Indian Constitution- historical underpinnings, evolution, features, amendments, significant provisions and basic structure", status: false },
+                { main: "Polity", sub: "Functions and responsibilities of the Union and the States, issues and challenges pertaining to the federal structure, devolution of powers and finances up to local levels and challenges therein", status: false },
+                { main: "Polity", sub: "Comparison of the Indian constitutional scheme with that of other countries", status: false },
+                { main: "Polity", sub: "Separation of powers between various organs dispute redressal mechanisms and institutions", status: false },
+                { main: "Polity", sub: "Parliament and State Legislatures – structure, functioning, conduct of business, powers & privileges and issues arising out of these", status: false },
+                { main: "Polity", sub: "Appointment to various Constitutional posts, powers, functions and responsibilities of various Constitutional Bodies", status: false },
+                { main: "Polity", sub: "Structure, organization and functioning of the Executive and the Judiciary Ministries and Departments of the Government", status: false },
+                { main: "Polity", sub: "Pressure groups and formal/informal associations and their role in the Polity", status: false },
+                { main: "Polity", sub: "Salient features of the Representation of People’s Act", status: false },
+                { main: "Polity", sub: "Statutory, regulatory and various quasi-judicial bodies", status: false },
+                { main: "Governance", sub: "Government policies and interventions for development in various sectors and issues arising out of their design and implementation", status: false },
+                { main: "Governance", sub: "Development processes and the development industry the role of NGOs, SHGs, various groups and associations, donors, charities, institutional and other stakeholders", status: false },
+                { main: "Governance", sub: "Role of civil services in a democracy", status: false },
+                { main: "Governance", sub: "Important aspects of governance, transparency and accountability, e-governance- applications, models, successes, limitations, and potential; citizens charters, transparency & accountability and institutional and other measures", status: false },
+                { main: "Social Justice", sub: "Welfare schemes for vulnerable sections of the population by the Centre and States and the performance of these schemes; mechanisms, laws, institutions and Bodies constituted for the protection and betterment of these vulnerable sections", status: false },
+                { main: "Social Justice", sub: "Issues relating to development and management of Social Sector/Services relating to Health, Education, Human Resources", status: false },
+                { main: "Social Justice", sub: "Issues relating to poverty and hunger", status: false },
+                { main: "IR", sub: "Bilateral, regional and global groupings and agreements involving India and/or affecting India’s interests", status: false },
+                { main: "IR", sub: "India and its neighborhood- relations", status: false },
+                { main: "IR", sub: "Important International institutions, agencies and fora, their structure, mandate", status: false },
+                { main: "IR", sub: "Effect of policies and politics of developed and developing countries on India’s interests, Indian diaspora", status: false }
+            ],
+            "GS3": [
+                { main: "Economics", sub: "Indian Economy and issues relating to planning, mobilization of resources, growth, development and employment.", status: true },
+                { main: "Economics", sub: "Government Budgeting.", status: true },
+                { main: "Economics", sub: "Inclusive growth and issues arising from it.", status: true },
+                { main: "Economics", sub: "Land reforms in India.", status: true },
+                { main: "Economics", sub: "Effects of liberalization on the economy, changes in industrial policy and their effects on industrial growth.", status: false },
+                { main: "Economics", sub: "Infrastructure: Energy, Ports, Roads, Airports, Railways etc.", status: false },
+                { main: "Economics", sub: "Investment models.", status: false },
+                { main: "Agriculture", sub: "Major crops cropping patterns in various parts of the country", status: false },
+                { main: "Agriculture", sub: "Different types of irrigation and irrigation systems storage", status: false },
+                { main: "Agriculture", sub: "Transport and marketing of agricultural produce and issues and related constraints", status: false },
+                { main: "Agriculture", sub: "e-technology in the aid of farmers , technology missions", status: false },
+                { main: "Agriculture", sub: "Economics of animal-rearing.", status: false },
+                { main: "Agriculture", sub: "Food processing and related industries in India- scope and significance, location, upstream and downstream requirements, supply chain management.", status: false },
+                { main: "Agriculture", sub: "Public Distribution System objectives, functioning, limitations, revamping", status: false },
+                { main: "Agriculture", sub: "Issues related to direct and indirect farm subsidies and minimum support prices", status: false },
+                { main: "Agriculture", sub: "Issues of buffer stocks and food security", status: false },
+                { main: "SnT", sub: "Science and Technology- developments and their applications and effects in everyday life", status: false },
+                { main: "SnT", sub: "Achievements of Indians in science & technology", status: false },
+                { main: "SnT", sub: "Indigenization of technology and developing new technology.", status: false },
+                { main: "SnT", sub: "Awareness in the fields of IT, Space, Computers, robotics, nano-technology, bio-technology and issues relating to intellectual property rights.", status: false },
+                { main: "SnT", sub: "Issues relating to IPR", status: false },
+                { main: "Environment", sub: "Biodiversity & Conservation", status: false },
+                { main: "Environment", sub: "Environmental pollution and degradation", status: false },
+                { main: "Environment", sub: "Environmental impact assessment", status: false },
+                { main: "Environment", sub: "Disaster and disaster management.", status: false },
+                { main: "Security", sub: "Role of external state and non-state actors in creating challenges to internal security.", status: false },
+                { main: "Security", sub: "Linkages between development and spread of extremism.", status: false },
+                { main: "Security", sub: "Challenges to internal security through communication networks, role of media and social networking sites in internal security challenges", status: false },
+                { main: "Security", sub: "Basics of cyber security", status: false },
+                { main: "Security", sub: "Money Laundering and its prevention", status: false },
+                { main: "Security", sub: "Various Security forces and agencies and their mandate", status: false },
+                { main: "Security", sub: "Security challenges and their management in border areas", status: false },
+                { main: "Security", sub: "Linkages of organized crime with terrorism", status: false }
+            ],
+            "GS4": [
+                { main: "Ethics", sub: "Ethics and Human Interface- Essence, determinants and consequences of Ethics in human actions; dimensions of ethics; ethics in private and public relationships", status: false },
+                { main: "Ethics", sub: "Human Values- lessons from the lives and teachings of great leaders, reformers and administrators; role of family, society and educational institutions in inculcating values", status: false },
+                { main: "Ethics", sub: "Attitude- content, structure, function; its influence and relation with thought and behaviour; moral and political attitudes; social influence and persuasion", status: false },
+                { main: "Ethics", sub: "Aptitude and foundational values for Civil Service, integrity, impartiality and non-partisanship, objectivity, dedication to public service, empathy, tolerance and compassion towards the weaker-sections", status: false },
+                { main: "Ethics", sub: "Emotional intelligence-concepts, and their utilities and application in administration and governance", status: false },
+                { main: "Ethics", sub: "Contributions of moral thinkers and philosophers from India and world", status: false },
+                { main: "Ethics", sub: "Public/Civil service values and Ethics in Public administration- Status and problems; ethical concerns and dilemmas in government and private institutions; laws, rules, regulations and conscience as sources of ethical guidance; accountability and ethical governance; strengthening of ethical and moral values in governance; ethical issues in international relations and funding; corporate governance", status: false },
+                { main: "Ethics", sub: "Probity in Governance- Concept of public service; Philosophical basis of governance and probity; Information; sharing and transparency in government, Right to Information, Codes of Ethics, Codes of Conduct, Citizen’s Charters, Work culture, Quality of service delivery, Utilization of public funds, challenges of corruption", status: false },
+                { main: "Ethics", sub: "Case Studies on above issues.", status: false }
+            ],
+            "Essay": [
+                { main: "Philosophical/ Abstract Essays", sub: "Philosophical Essay 1", status: false },
+                { main: "Philosophical/ Abstract Essays", sub: "Philosophical Essay 2", status: false },
+                { main: "Philosophical/ Abstract Essays", sub: "Philosophical Essay 3", status: false },
+                { main: "Philosophical/ Abstract Essays", sub: "Philosophical Essay 4", status: false },
+                { main: "Topic Essays", sub: "Topic Essay 1", status: false },
+                { main: "Topic Essays", sub: "Topic Essay 2", status: false },
+                { main: "Topic Essays", sub: "Topic Essay 3", status: false },
+                { main: "Topic Essays", sub: "Topic Essay 4", status: false }
+            ],
+            "Maths P1": [
+                { main: "Linear Algebra", sub: "Vector spaces over R and C", status: false },
+                { main: "Linear Algebra", sub: "Linear dependence and independence", status: false },
+                { main: "Linear Algebra", sub: "Subspaces , Bases , Dimensions", status: false },
+                { main: "Linear Algebra", sub: "Linear transformations", status: false },
+                { main: "Linear Algebra", sub: "Rank and nullity , matrix of a linear transformation", status: false },
+                { main: "Linear Algebra", sub: "Algebra of Matrices", status: false },
+                { main: "Linear Algebra", sub: "Row and column reduction , Echelon form , Congruences and similarity", status: false },
+                { main: "Linear Algebra", sub: "Rank of a matrix", status: false },
+                { main: "Linear Algebra", sub: "Inverse of a matrix", status: false },
+                { main: "Linear Algebra", sub: "Solution of system of linear equations", status: false },
+                { main: "Linear Algebra", sub: "Eigenvalues and eigenvectors , characteristic polynomial", status: false },
+                { main: "Linear Algebra", sub: "Cayley-Hamilton theorem", status: false },
+                { main: "Linear Algebra", sub: "Symmetric , Skew Symmetric , Hermitian , Skey Hermitian , Orthogonal , unitary matrices and their eigenvalues", status: false },
+                { main: "Calculus", sub: "Real numbers, functions of a real variable, limits, continuity, differentiability, mean-value theorem, Taylor’s theorem with remainders, indeterminate forms, maxima and minima, asymptotes", status: false },
+                { main: "Calculus", sub: "Curve tracing", status: false },
+                { main: "Calculus", sub: "Functions of two or three variables", status: false },
+                { main: "Calculus", sub: "Limits, continuity, partial derivatives, maxima and minima, Lagrange’s method of multipliers, Jacobian. Riemann’s definition of definite integrals", status: false },
+                { main: "Calculus", sub: "Indefinite integrals", status: false },
+                { main: "Calculus", sub: "Infinite and improper integral", status: false },
+                { main: "Calculus", sub: "Double and triple integrals (evaluation techniques only)", status: false },
+                { main: "Calculus", sub: "Areas, surface and volumes.", status: false },
+                { main: "Analytic Geometry", sub: "Cartesian And Polar Coordinates In Three Dimensions", status: false },
+                { main: "Analytic Geometry", sub: "Second Degree Equations In Three Variables", status: false },
+                { main: "Analytic Geometry", sub: "Reduction To Canonical Forms", status: false },
+                { main: "Analytic Geometry", sub: "Straight Lines", status: false },
+                { main: "Analytic Geometry", sub: "Shortest Distance Between Two Skew Lines", status: false },
+                { main: "Analytic Geometry", sub: "Plane", status: false },
+                { main: "Analytic Geometry", sub: "Sphere", status: false },
+                { main: "Analytic Geometry", sub: "Cone", status: false },
+                { main: "Analytic Geometry", sub: "Cylinder", status: false },
+                { main: "Analytic Geometry", sub: "Paraboloid", status: false },
+                { main: "Analytic Geometry", sub: "Ellipsoid", status: false },
+                { main: "Analytic Geometry", sub: "Hyperboloid Of One And Two Sheets And Their Properties.", status: false },
+                { main: "ODE", sub: "Formulation Of Differential Equations", status: false },
+                { main: "ODE", sub: "Equations Of First Order And First Degree, Integrating Factor", status: false },
+                { main: "ODE", sub: "Orthogonal Trajectory", status: false },
+                { main: "ODE", sub: "Equations of First Order but not of First Degree", status: false },
+                { main: "ODE", sub: "Clairauts Equation , Singular Solution", status: false },
+                { main: "ODE", sub: "Second And Higher Order Linear Equations With Constant Coefficients", status: false },
+                { main: "ODE", sub: "Complementary Function, Particular Integral And General Solution", status: false },
+                { main: "ODE", sub: "Second Order Linear Equations With Variable Coefficients", status: false },
+                { main: "ODE", sub: "Euler-Cauchy Equation", status: false },
+                { main: "ODE", sub: "Determination Of Complete Solution When One Solution Is Known Using Method Of Variation Of Parameters", status: false },
+                { main: "ODE", sub: "Laplace And Inverse Laplace Transforms And Their Properties, Laplace Transforms Of Elementary Functions", status: false },
+                { main: "ODE", sub: "Application To Initial Value Problems For 2nd Order Linear Equations With Constant Coefficients.", status: false },
+                { main: "Vectors", sub: "Scalar and vector fields, differentiation of vector field of a scalar variable", status: false },
+                { main: "Vectors", sub: "Gradient, divergence and curl in cartesian and cylindrical coordinates", status: false },
+                { main: "Vectors", sub: "Higher order derivatives", status: false },
+                { main: "Vectors", sub: "Vector identities and vector equation", status: false },
+                { main: "Vectors", sub: "Application to geometry: Curves in space, curvature and torsion", status: false },
+                { main: "Vectors", sub: "Serret-Frenet's formulae", status: false },
+                { main: "Vectors", sub: "Green’s, Gauss and Stokes’ theorems.", status: false },
+                { main: "Dynamics and statics", sub: "Rectilinear motion, simple harmonic motion, motion in a plane, projectiles", status: false },
+                { main: "Dynamics and statics", sub: "Constrained motion", status: false },
+                { main: "Dynamics and statics", sub: "Work and energy, conservation of energy", status: false },
+                { main: "Dynamics and statics", sub: "Kepler’s laws, orbits under central forces", status: false },
+                { main: "Dynamics and statics", sub: "Equilibrium of a system of particles", status: false },
+                { main: "Dynamics and statics", sub: "Work and potential energy, friction, Common catenary", status: false },
+                { main: "Dynamics and statics", sub: "Principle of virtual work", status: false },
+                { main: "Dynamics and statics", sub: "Stability of equilibrium, equilibrium of forces in three dimensions.", status: false }
+            ],
+            "Maths P2": [
+                { main: "Modern Algebra", sub: "Groups, subgroups, cyclic groups, cosets, Lagrange’s Theorem, normal subgroups, quotient groups, homomorphism of groups, basic isomorphism theorems, permutation groups, Cayley’s theorem", status: true },
+                { main: "Modern Algebra", sub: "Rings, subrings and ideals, homomorphisms of rings", status: true },
+                { main: "Modern Algebra", sub: "Integral domains, principal ideal domains, Euclidean domains and unique factorization domains", status: false },
+                { main: "Modern Algebra", sub: "Fields, quotient fields.", status: false },
+                { main: "Real Analysis", sub: "Real number system as an ordered field with least upper bound property", status: false },
+                { main: "Real Analysis", sub: "Sequences, limit of a sequence, Cauchy sequence, completeness of real line", status: false },
+                { main: "Real Analysis", sub: "Series and its convergence, absolute and conditional convergence of series of real and complex terms, rearrangement of series", status: false },
+                { main: "Real Analysis", sub: "Continuity and uniform continuity of functions, properties of continuous functions on compact sets", status: false },
+                { main: "Real Analysis", sub: "Riemann integral, improper integrals", status: false },
+                { main: "Real Analysis", sub: "Fundamental theorems of integral calculus", status: false },
+                { main: "Real Analysis", sub: "Uniform convergence, continuity, differentiability and integrability for sequences and series of functions", status: false },
+                { main: "Real Analysis", sub: "Partial derivatives of functions of several (two or three) variables, maxima and minima", status: false },
+                { main: "Complex Analysis", sub: "Analytic function, Cauchy-Riemann equations, Cauchy's theorem, Cauchy's integral formula, representation of an analytic function", status: false },
+                { main: "Complex Analysis", sub: "Singularities", status: false },
+                { main: "Complex Analysis", sub: "Laurent’s series , Taylors Series , Power Series", status: false },
+                { main: "Complex Analysis", sub: "Cauchy’s residue theorem", status: false },
+                { main: "Complex Analysis", sub: "Contour integration.", status: false },
+                { main: "Linear Programming", sub: "Linear programming problems, basic solution, basic feasible solution and optimal solution", status: false },
+                { main: "Linear Programming", sub: "Graphical method and simplex method of solutions", status: false },
+                { main: "Linear Programming", sub: "Duality", status: false },
+                { main: "Linear Programming", sub: "Transportation and assignment problems.", status: false },
+                { main: "PDE", sub: "Family of surfaces in three dimensions and formulation of partial differential equations", status: false },
+                { main: "PDE", sub: "Solution of quasilinear partial differential equations of the first order, Cauchy’s method of characteristics", status: false },
+                { main: "PDE", sub: "Linear partial differential equations of the second order with constant coefficients, canonical form", status: false },
+                { main: "PDE", sub: "Equation of a vibrating string, heat equation, Laplace equation and their solutions.", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Numerical methods: solution of algebraic and transcendental equations of one variable by bisection, Regula-Falsi and Newton-Raphson methods", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Solution of system of linear equations by Gaussian elimination and Gauss-Jordan (direct), Gauss-Seidel(iterative) methods", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Newton’s (forward and backward) interpolation, Lagrange’s interpolation", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Numerical integration: Trapezoidal rule, Simpson’s rules, Gaussian quadrature formula", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Numerical solution of ordinary differential equations: Euler and Runge Kutta-methods", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Computer Programming: Binary system", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Arithmetic and logical operations on numbers", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Octal and Hexadecimal systems", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Conversion to and from decimal systems", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Algebra of binary numbers", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Elements of computer systems and concept of memory", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Basic logic gates and truth tables, Boolean algebra, normal forms", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Representation of unsigned integers, signed integers and reals, double precision reals and long integers", status: false },
+                { main: "Numerical Analysis and Computer Programming", sub: "Algorithms and flow charts for solving numerical analysis problems.", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "Generalised coordinates", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "D’Alembert’s principle and Lagrange’s equations", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "Hamilton equations", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "Moment of inertia", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "Motion of rigid bodies in two dimensions", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "Equation of continuity", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "Euler’s equation of motion for inviscid flow", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "Stream-lines, path of a particle", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "Potential flow", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "Two-dimensional and axisymmetric motion", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "Sources and sinks, vortex motion", status: false },
+                { main: "Mechanics and Fluid dynamics", sub: "Navier-Stokes equation for a viscous fluid.", status: false }
+            ]
+        };
+
+        // Load saved data from localStorage, or use default
+        let appData = JSON.parse(localStorage.getItem('microprep_data_full')) || defaultData;
+        let currentSubject = "Maths P2"; // Default open tab
+        let doughnutChartInst = null;
+        let barChartInst = null;
+
+        // Set Date
+        const dateOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-GB', dateOptions);
+
+        // ==========================================
+        // 2. CORE LOGIC
+        // ==========================================
+
+        function calculateStats() {
+            let total = 0;
+            let completed = 0;
+            let subjectStats = {};
+
+            for (const [subj, topics] of Object.entries(appData)) {
+                let subjTotal = topics.length;
+                let subjDone = topics.filter(t => t.status).length;
+                
+                total += subjTotal;
+                completed += subjDone;
+                
+                subjectStats[subj] = {
+                    total: subjTotal,
+                    done: subjDone,
+                    percent: subjTotal > 0 ? Math.round((subjDone / subjTotal) * 100) : 0
+                };
+            }
+            
+            const overallPercent = total > 0 ? ((completed / total) * 100).toFixed(1) : 0;
+            return { total, completed, overallPercent, subjectStats };
+        }
+
+        function switchTab(viewId) {
+            // Update Top Nav
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Switch Containers
+            document.getElementById('view-dashboard').classList.remove('active');
+            document.getElementById('view-syllabus').classList.remove('active');
+            document.getElementById('view-' + viewId).classList.add('active');
+
+            if (viewId === 'dashboard') renderDashboard();
+            if (viewId === 'syllabus') renderSyllabusSidebar();
+        }
+
+        // ==========================================
+        // 3. DASHBOARD RENDERING
+        // ==========================================
+        function renderDashboard() {
+            const stats = calculateStats();
+            document.getElementById('top-topic-count').textContent = `📚 ${stats.completed} / ${stats.total} topics`;
+
+            // Render Metrics
+            const metrics = [
+                { title: "Syllabus Done", value: `${stats.overallPercent}%`, sub: "overall completion", color: "val-yellow" },
+                { title: "Mastered", value: stats.completed, sub: `of ${stats.total} topics`, color: "val-green" },
+                { title: "Remaining", value: stats.total - stats.completed, sub: "topics to go", color: "val-blue" },
+                { title: "Study Hours", value: "12.0", sub: "logged (from CSV)", color: "val-purple" }
+            ];
+
+            const mc = document.getElementById('metrics-container');
+            mc.innerHTML = metrics.map(m => `
+                <div class="metric-card">
+                    <div class="metric-title">${m.title}</div>
+                    <div class="metric-value ${m.color}">${m.value}</div>
+                    <div class="metric-sub">${m.sub}</div>
+                </div>
+            `).join('');
+
+            updateCharts(stats);
+        }
+
+        function updateCharts(stats) {
+            Chart.defaults.color = '#9ca3af';
+            Chart.defaults.borderColor = '#1f2937';
+
+            // Doughnut
+            const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+            if(doughnutChartInst) doughnutChartInst.destroy();
+            doughnutChartInst = new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Remaining'],
+                    datasets: [{
+                        data: [stats.completed, stats.total - stats.completed],
+                        backgroundColor: ['#22c55e', '#1f2937'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Bar Chart
+            const labels = Object.keys(stats.subjectStats);
+            const data = labels.map(l => stats.subjectStats[l].percent);
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            
+            if(barChartInst) barChartInst.destroy();
+            barChartInst = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '% Completed',
+                        data: data,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 100 } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // ==========================================
+        // 4. SYLLABUS RENDERING
+        // ==========================================
+        function renderSyllabusSidebar() {
+            const stats = calculateStats();
+            const sidebar = document.getElementById('subject-sidebar');
+            sidebar.innerHTML = Object.keys(appData).map(subj => `
+                <div class="subject-btn ${subj === currentSubject ? 'active' : ''}" onclick="selectSubject('${subj}')">
+                    <span>${subj}</span>
+                    <span style="font-size: 0.8rem; opacity: 0.7;">${stats.subjectStats[subj].percent}%</span>
+                </div>
+            `).join('');
+            
+            renderSyllabusTable();
+        }
+
+        function selectSubject(subj) {
+            currentSubject = subj;
+            renderSyllabusSidebar(); // re-render to update active state
+        }
+
+        function renderSyllabusTable() {
+            const tbody = document.getElementById('syllabus-table-body');
+            const topics = appData[currentSubject];
+
+            tbody.innerHTML = topics.map((t, index) => `
+                <tr>
+                    <td>
+                        <input type="checkbox" ${t.status ? 'checked' : ''} onchange="toggleTopic('${currentSubject}', ${index})">
+                    </td>
+                    <td>
+                        <span class="main-topic">${t.main}</span>
+                        <span class="${t.status ? 'status-done' : ''}">${t.sub}</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleTopic(subject, index) {
+            // Update the data array
+            appData[subject][index].status = !appData[subject][index].status;
+            
+            // Save to browser cache so it persists on refresh
+            localStorage.setItem('microprep_data_full', JSON.stringify(appData));
+            
+            // Re-render
+            renderSyllabusTable();
+            renderSyllabusSidebar(); // Update the sidebar percentages live
+            
+            // Update top count instantly
+            const stats = calculateStats();
+            document.getElementById('top-topic-count').textContent = `📚 ${stats.completed} / ${stats.total} topics`;
+        }
+
+        // Initialize App
+        renderDashboard();
+
+    </script>
+</body>
+</html>
