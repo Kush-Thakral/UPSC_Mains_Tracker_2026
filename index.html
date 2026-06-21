@@ -91,7 +91,7 @@
         .mtc-body { padding: 10px 15px; overflow-y: auto; flex: 1; pointer-events: auto; }
         .subtopic-row { display: flex; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border-color); gap: 12px; }
         .subtopic-row:last-child { border-bottom: none; }
-        .subtopic-text { flex: 1; color: var(--text-main); font-size: 0.9rem; line-height: 1.4; transition: 0.2s; word-break: break-word; }
+        .subtopic-text { flex: 1; color: var(--text-main); font-size: 0.9rem; line-height: 1.4; transition: 0.2s; }
         input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-green); flex-shrink: 0; margin-top: 2px; }
         .status-done { color: var(--accent-green); font-weight: bold; }
 
@@ -154,7 +154,7 @@
 
     <header>
         <div class="logo-section">
-            <div class="logo-title">Mains 2026 Tracker</div>
+            <div class="logo-title">🎯 MicroPrep Tracker</div>
             <div class="subtitle">Kush • CSE 2026 • Road to LBSNAA</div>
         </div>
         <div class="header-actions">
@@ -165,10 +165,10 @@
     </header>
 
     <div class="nav-tabs">
-        <div class="nav-item active" id="tab-dashboard" onclick="switchTab('dashboard')">📊 Dashboard</div>
-        <div class="nav-item" id="tab-syllabus" onclick="switchTab('syllabus')">📑 Syllabus Tracker</div>
-        <div class="nav-item" id="tab-calendar" onclick="switchTab('calendar')">📅 Calendar</div>
-        <div class="nav-item" id="tab-timer" onclick="switchTab('timer')">⏱ Time Tracker</div>
+        <div class="nav-item active" onclick="switchTab('dashboard')">📊 Dashboard</div>
+        <div class="nav-item" onclick="switchTab('syllabus')">📑 Syllabus Tracker</div>
+        <div class="nav-item" onclick="switchTab('calendar')">📅 Calendar</div>
+        <div class="nav-item" onclick="switchTab('timer')">⏱ Time Tracker</div>
     </div>
 
     <div class="container active" id="view-dashboard">
@@ -385,48 +385,34 @@
         const MAINS_DATE = new Date("2026-08-21T00:00:00");
         const TODAY = new Date("2026-06-21T00:00:00"); 
         const TODAY_STR = "2026-06-21";
-        
-        let appData, calendarData, timeData, counters;
+        document.getElementById('current-date').textContent = "📅 21 Jun 2026";
+
+        let appData = JSON.parse(localStorage.getItem('upsc_data_v4')) || initialRawData;
+        let calendarData = JSON.parse(localStorage.getItem('upsc_cal_v3')) || {};
+        let timeData = JSON.parse(localStorage.getItem('upsc_time_v2')) || { "2026-06-20": 12 * 3600, "2026-06-21": 0 };
+        if(!timeData[TODAY_STR]) timeData[TODAY_STR] = 0; 
+
+        // Dashboard Counters Storage
+        let counters = JSON.parse(localStorage.getItem('upsc_counters_v2')) || {
+            lastDate: TODAY_STR, aw10: 0, aw15: 0, awTotal: 0, pyq: 0, essay: 0
+        };
+
+        // EXPLICIT CHECK: Only reset aw10 and aw15 when date rolls over.
+        if (counters.lastDate !== TODAY_STR) {
+            counters.aw10 = 0; 
+            counters.aw15 = 0;
+            counters.lastDate = TODAY_STR;
+            localStorage.setItem('upsc_counters_v2', JSON.stringify(counters));
+        }
+
         let currentSubject = "GS3"; 
         let doughnutChartInst = null; let barChartInst = null; let syllabusSubjectChartInst = null;
 
-        window.onload = function() {
-            document.getElementById('current-date').textContent = "📅 21 Jun 2026";
-            
-            // Incrementing keys to v5 to wipe any broken cached data
-            appData = JSON.parse(localStorage.getItem('upsc_data_v5')) || initialRawData;
-            calendarData = JSON.parse(localStorage.getItem('upsc_cal_v4')) || {};
-            timeData = JSON.parse(localStorage.getItem('upsc_time_v3')) || { "2026-06-20": 12 * 3600, "2026-06-21": 0 };
-            if(!timeData[TODAY_STR]) timeData[TODAY_STR] = 0; 
-
-            counters = JSON.parse(localStorage.getItem('upsc_counters_v3')) || {
-                lastDate: TODAY_STR, aw10: 0, aw15: 0, awTotal: 0, pyq: 0, essay: 0
-            };
-
-            if (counters.lastDate !== TODAY_STR) {
-                counters.aw10 = 0; 
-                counters.aw15 = 0;
-                counters.lastDate = TODAY_STR;
-                localStorage.setItem('upsc_counters_v3', JSON.stringify(counters));
-            }
-
-            if (typeof Chart !== 'undefined') {
-                Chart.defaults.color = '#9ca3af'; 
-                Chart.defaults.borderColor = '#444444';
-            }
-
-            renderDashboard();
-            updatePomoSettings();
-            updateSwDisplay();
-            renderTimeLogs();
-        };
-
         function switchTab(viewId) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + viewId).classList.add('active');
+            event.target.classList.add('active');
             document.querySelectorAll('.container').forEach(el => el.classList.remove('active'));
             document.getElementById('view-' + viewId).classList.add('active');
-            
             if (viewId === 'dashboard') renderDashboard();
             if (viewId === 'syllabus') { renderSyllabusNavigation(); renderSyllabusCards(); }
             if (viewId === 'calendar') renderCalendar();
@@ -440,7 +426,7 @@
             counters[type] += change;
             if(counters[type] < 0) counters[type] = 0;
             document.getElementById('val-' + type).textContent = counters[type];
-            localStorage.setItem('upsc_counters_v3', JSON.stringify(counters));
+            localStorage.setItem('upsc_counters_v2', JSON.stringify(counters));
         }
 
         function initCounters() {
@@ -491,7 +477,7 @@
         }
 
         function updateCharts(stats) {
-            if (typeof Chart === 'undefined') return;
+            Chart.defaults.color = '#9ca3af'; Chart.defaults.borderColor = '#444444';
             const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
             if(doughnutChartInst) doughnutChartInst.destroy();
             doughnutChartInst = new Chart(ctxDoughnut, { type: 'doughnut', data: { labels: ['Completed', 'Remaining'], datasets: [{ data: [stats.completed, stats.total - stats.completed], backgroundColor: ['#22c55e', '#444444'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'bottom' } } } });
@@ -520,19 +506,15 @@
             for (const [mainTitle, subtopics] of Object.entries(appData[currentSubject])) {
                 let total = subtopics.length; let done = subtopics.filter(s => s.status).length;
                 let percent = total > 0 ? Math.round((done/total)*100) : 0;
+                chartLabels.push(mainTitle.length > 20 ? mainTitle.substring(0, 20) + '...' : mainTitle); chartData.push(percent);
                 
-                chartLabels.push(mainTitle.length > 20 ? mainTitle.substring(0, 20) + '...' : mainTitle); 
-                chartData.push(percent);
-                
-                const encTitle = encodeURIComponent(mainTitle);
-                
-                html += `<div class="main-topic-card" ondblclick="openTopicModal('${encTitle}')">
+                html += `<div class="main-topic-card" ondblclick="openTopicModal('${mainTitle.replace(/'/g, "\\'")}')">
                     <div class="mtc-header"><div class="mtc-title">${mainTitle}</div>
                         <div class="mtc-progress"><span>${done} of ${total} Completed</span><span style="color: ${percent === 100 ? 'var(--accent-green)' : 'var(--accent-yellow)'}">${percent}%</span></div>
                         <div class="mtc-hint">Double click to expand view</div>
                     </div>
                     <div class="mtc-body" onclick="event.stopPropagation()">
-                        ${subtopics.map((sub, index) => `<div class="subtopic-row"><input type="checkbox" ${sub.status ? 'checked' : ''} onchange="toggleSubtopic('${encTitle}', ${index}, false)"><div class="subtopic-text ${sub.status ? 'status-done' : ''}">${sub.sub}</div></div>`).join('')}
+                        ${subtopics.map((sub, index) => `<div class="subtopic-row"><input type="checkbox" ${sub.status ? 'checked' : ''} onchange="toggleSubtopic('${mainTitle.replace(/'/g, "\\'")}', ${index}, false)"><div class="subtopic-text ${sub.status ? 'status-done' : ''}">${sub.sub}</div></div>`).join('')}
                     </div></div>`;
             }
             document.getElementById('topic-cards-container').innerHTML = html;
@@ -540,22 +522,20 @@
             renderSyllabusChart(chartLabels, chartData);
         }
 
-        function toggleSubtopic(encTitle, index, isModal) {
-            let mainTitle = decodeURIComponent(encTitle);
+        function toggleSubtopic(mainTitle, index, isModal) {
             appData[currentSubject][mainTitle][index].status = !appData[currentSubject][mainTitle][index].status;
-            localStorage.setItem('upsc_data_v5', JSON.stringify(appData));
+            localStorage.setItem('upsc_data_v4', JSON.stringify(appData));
             renderSyllabusNavigation(); renderSyllabusCards();
-            if(isModal) openTopicModal(encTitle);
+            if(isModal) openTopicModal(mainTitle);
             const stats = calculateStats();
             document.getElementById('top-topic-count').textContent = `📚 ${stats.completed} / ${stats.total} topics`;
         }
 
-        function openTopicModal(encTitle) {
-            let mainTitle = decodeURIComponent(encTitle);
+        function openTopicModal(mainTitle) {
             document.getElementById('topic-modal-title').textContent = mainTitle;
             document.getElementById('topic-modal-body').innerHTML = appData[currentSubject][mainTitle].map((sub, index) => `
                 <div class="subtopic-row" style="padding: 10px; background: var(--bg-color); border-radius: 8px;">
-                    <input type="checkbox" ${sub.status ? 'checked' : ''} onchange="toggleSubtopic('${encTitle}', ${index}, true)">
+                    <input type="checkbox" ${sub.status ? 'checked' : ''} onchange="toggleSubtopic('${mainTitle.replace(/'/g, "\\'")}', ${index}, true)">
                     <div class="subtopic-text ${sub.status ? 'status-done' : ''}">${sub.sub}</div>
                 </div>
             `).join('');
@@ -564,7 +544,6 @@
         function closeTopicModal() { document.getElementById('topic-modal').classList.remove('active'); }
 
         function renderSyllabusChart(labels, data) {
-            if (typeof Chart === 'undefined') return;
             const ctx = document.getElementById('syllabusSubjectChart').getContext('2d');
             if(syllabusSubjectChartInst) syllabusSubjectChartInst.destroy();
             syllabusSubjectChartInst = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: '% Completed', data: data, backgroundColor: '#a855f7', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, ticks: { color: '#9ca3af' }, grid: { color: '#444444' } }, x: { ticks: { color: '#9ca3af' }, grid: { display: false } } }, plugins: { legend: { display: false } } } });
@@ -618,7 +597,7 @@
         function toggleModalTask(idx) { currentModalTasks[idx].done = !currentModalTasks[idx].done; renderModalTasks(); }
         function removeModalTask(idx) { currentModalTasks.splice(idx, 1); renderModalTasks(); }
         function closeModal() { document.getElementById('cal-modal').classList.remove('active'); }
-        function saveDay() { calendarData[selectedDateStr] = { tasks: currentModalTasks, targetHrs: parseFloat(document.getElementById('modal-target-hours').value) || 0 }; localStorage.setItem('upsc_cal_v4', JSON.stringify(calendarData)); closeModal(); renderCalendar(); }
+        function saveDay() { calendarData[selectedDateStr] = { tasks: currentModalTasks, targetHrs: parseFloat(document.getElementById('modal-target-hours').value) || 0 }; localStorage.setItem('upsc_cal_v3', JSON.stringify(calendarData)); closeModal(); renderCalendar(); }
 
         // ==========================================
         // TIME TRACKER
@@ -674,10 +653,12 @@
         }
         function resetStopwatch() { if(swRunning) { clearInterval(swInterval); swRunning = false; } swTime = 0; document.getElementById('sw-btn').textContent = "START"; document.getElementById('sw-btn').classList.replace('btn-pause', 'btn-start'); updateSwDisplay(); }
 
-        function logTimeTick() { timeData[TODAY_STR]++; if(timeData[TODAY_STR] % 10 === 0) { localStorage.setItem('upsc_time_v3', JSON.stringify(timeData)); renderTimeLogs(); } }
+        function logTimeTick() { timeData[TODAY_STR]++; if(timeData[TODAY_STR] % 10 === 0) { localStorage.setItem('upsc_time_v2', JSON.stringify(timeData)); renderTimeLogs(); } }
         function updateGlobalTimeUI() { let todayHrs = (timeData[TODAY_STR] / 3600).toFixed(2); document.getElementById('today-total-time').textContent = `${todayHrs} hrs`; document.getElementById('top-hours').textContent = `⏱ ${todayHrs} hrs today`; }
 
         function loadMusic() { let url = document.getElementById('music-url').value; if (url.includes('youtu.be/')) { url = `https://www.youtube.com/embed/${url.split('youtu.be/')[1].split('?')[0]}`; } else if (url.includes('watch?v=')) { url = `https://www.youtube.com/embed/${url.split('watch?v=')[1].split('&')[0]}`; } document.getElementById('music-iframe').src = url; }
+
+        renderDashboard(); updatePomoSettings(); updateSwDisplay(); renderTimeLogs();
 
     </script>
 </body>
