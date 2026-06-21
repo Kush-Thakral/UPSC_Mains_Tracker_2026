@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            /* Precise background settings */
+            var(--bg-color): #333333; 
             --bg-color: #333333; 
             --card-bg: #222222;
             --border-color: #444444;
@@ -22,7 +22,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: var(--font-family); min-height: 100vh; }
+        body { background-color: var(--bg-color); color: var(--text-main); font-family: var(--font-family); min-height: 100vh; overflow-x: hidden; }
 
         /* Navbar & Header */
         header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; border-bottom: 1px solid var(--border-color); background-color: var(--card-bg); }
@@ -48,7 +48,7 @@
         .btn-close { background: var(--border-color); color: white; }
         input, select { background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 5px; }
 
-        /* --- Dashboard Styles --- */
+        /* Dashboard Styles */
         .hero-banner { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
         .hero-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
         .hero-subtitle { color: var(--text-muted); font-size: 0.9rem; }
@@ -61,29 +61,39 @@
         .chart-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; }
         .canvas-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; align-items: center; }
 
-        /* --- Syllabus Tracker Styles (Accordion) --- */
-        .syllabus-layout { display: flex; gap: 20px; height: 75vh; }
-        .subject-sidebar { width: 250px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-right: 10px; }
+        /* --- NEW Syllabus Tracker Styles --- */
         
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* Horizontal Subject Navigation */
+        .subject-nav-horizontal { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .subj-btn-hz { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 12px 25px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-weight: bold; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
+        .subj-btn-hz:hover { border-color: #555; color: var(--text-main); }
+        .subj-btn-hz.active { border-color: var(--accent-blue); color: var(--text-main); background-color: rgba(59, 130, 246, 0.1); }
+        .subj-percent-badge { background: var(--bg-color); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+        .subj-btn-hz.active .subj-percent-badge { color: var(--accent-blue); border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        /* Horizontal Main Topic Cards */
+        .syllabus-horizontal-scroll { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; height: 45vh; }
+        .main-topic-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; min-width: 380px; max-width: 380px; display: flex; flex-direction: column; }
+        .mtc-header { padding: 18px; border-bottom: 1px solid var(--border-color); background: #282828; border-radius: 10px 10px 0 0; display: flex; flex-direction: column; gap: 5px; }
+        .mtc-title { font-weight: bold; color: var(--accent-blue); font-size: 1.05rem; }
+        .mtc-progress { font-size: 0.85rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
         
-        .subject-btn { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 15px; border-radius: 8px; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; }
-        .subject-btn.active { border-color: var(--accent-blue); color: var(--text-main); background-color: rgba(59, 130, 246, 0.1); }
-        .subject-content { flex: 1; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; overflow-y: auto; padding: 20px; }
-        
-        .accordion-item { border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px; background-color: var(--bg-color); overflow: hidden; }
-        .accordion-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background-color: var(--card-bg); font-weight: bold; color: var(--accent-blue); }
-        .accordion-header:hover { background-color: #2a2a2a; }
-        .accordion-body { display: none; padding: 0; }
-        .accordion-body.open { display: block; }
-        
-        .subtopic-row { display: flex; align-items: center; padding: 12px 15px; border-top: 1px solid var(--border-color); gap: 15px; }
-        .subtopic-text { flex: 1; color: var(--accent-green); font-size: 0.95rem; }
-        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-green); }
+        /* Scrollable Subtopics */
+        .mtc-body { padding: 10px 15px; overflow-y: auto; flex: 1; }
+        .subtopic-row { display: flex; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border-color); gap: 12px; }
+        .subtopic-row:last-child { border-bottom: none; }
+        .subtopic-text { flex: 1; color: var(--text-main); font-size: 0.9rem; line-height: 1.4; }
+        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-green); flex-shrink: 0; margin-top: 2px; }
         .status-done { color: var(--text-muted); text-decoration: line-through; opacity: 0.5; }
-        .progress-text { font-size: 0.8rem; color: var(--text-muted); font-weight: normal; }
+
+        /* Syllabus Chart Container */
+        .syllabus-chart-container { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; margin-top: 10px; }
 
         /* --- Calendar Styles --- */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -109,7 +119,7 @@
         .task-ul span { flex: 1; font-size: 0.9rem; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px; }
 
-        /* --- Time Tracker (Pomodoro + Stopwatch) Styles --- */
+        /* --- Time Tracker Styles --- */
         .tracker-layout { display: flex; gap: 30px; height: 75vh; }
         .timers-column { flex: 1; display: flex; flex-direction: column; gap: 20px; }
         .timer-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
@@ -160,7 +170,7 @@
         <div class="metrics-grid" id="metrics-container"></div>
         <div class="charts-grid">
             <div class="chart-card">
-                <h3 style="margin-bottom: 20px;">Syllabus Completion %</h3>
+                <h3 style="margin-bottom: 20px;">Overall Completion %</h3>
                 <div class="canvas-container"><canvas id="doughnutChart"></canvas></div>
             </div>
             <div class="chart-card">
@@ -171,10 +181,20 @@
     </div>
 
     <div class="container" id="view-syllabus">
-        <div class="syllabus-layout">
-            <div class="subject-sidebar" id="subject-sidebar"></div>
-            <div class="subject-content" id="accordion-container"></div>
+        
+        <div class="subject-nav-horizontal" id="subject-nav-container">
+            </div>
+
+        <div class="syllabus-horizontal-scroll" id="topic-cards-container">
+            </div>
+
+        <div class="syllabus-chart-container">
+            <h3 id="syllabus-chart-title" style="margin-bottom: 15px; color: var(--accent-blue);">Subject Analysis</h3>
+            <div class="canvas-container" style="height: 180px;">
+                <canvas id="syllabusSubjectChart"></canvas>
+            </div>
         </div>
+
     </div>
 
     <div class="container" id="view-calendar">
@@ -231,7 +251,7 @@
                 
                 <div class="music-card">
                     <h3 style="margin-bottom: 10px; color: var(--accent-green);">Focus Music</h3>
-                    <input type="text" id="music-url" placeholder="Paste YouTube Link..." style="width: 100%; margin-bottom: 10px;" value="https://youtu.be/74cOUSKXMz0">
+                    <input type="text" id="music-url" placeholder="Paste YouTube Link..." style="width: 100%; margin-bottom: 10px;" value="https://youtu.be/74cOUSKXMz0?si=IHIhtJc3Niu5Y1Sh">
                     <button class="btn btn-save" style="width: 100%;" onclick="loadMusic()">Load Player</button>
                     <iframe id="music-iframe" src="https://www.youtube.com/embed/74cOUSKXMz0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
                 </div>
@@ -242,20 +262,15 @@
     <div class="modal" id="cal-modal">
         <div class="modal-content">
             <h3 id="modal-date-title" style="margin-bottom: 15px; color: var(--accent-blue);">Plan for Date</h3>
-            
             <div class="modal-row">
                 <label style="color: var(--text-muted);">Target Study Hours:</label>
                 <input type="number" id="modal-target-hours" step="0.5" min="0" max="24" style="width: 80px;">
             </div>
-
             <div class="modal-row">
                 <input type="text" id="modal-new-task" placeholder="Add a new goal/topic..." style="flex: 1;">
                 <button class="btn btn-save" onclick="addModalTask()">Add</button>
             </div>
-
-            <ul class="task-ul" id="modal-task-list">
-                </ul>
-
+            <ul class="task-ul" id="modal-task-list"></ul>
             <div class="modal-actions">
                 <button class="btn btn-close" onclick="closeModal()">Close</button>
                 <button class="btn btn-save" onclick="saveDay()">Save & Close</button>
@@ -265,38 +280,71 @@
 
     <script>
         // ==========================================
-        // 1. DATA STRUCTURE (From your CSVs)
+        // 1. DATA STRUCTURE (Extracted from all 7 CSVs)
         // ==========================================
-        // (Truncated default data to keep logic intact, using previously established data format)
-        let appData = JSON.parse(localStorage.getItem('upsc_data_v2'));
-        if(!appData) {
-            // Re-initializing bare structure for space saving, assumes previous load or fallback
-            appData = {
-                "GS1": {
-                    "Art, Architecture, Literature from Ancient to Modern Times": [ { sub: "Art", status: false }, { sub: "Architecture", status: false }, { sub: "Literature", status: false } ],
-                    "MIH - Mid-18th century – Present": [ { sub: "Significant events, personalities, issues", status: false }, { sub: "Freedom Struggle (stages, contributors)", status: false } ]
-                },
-                "GS3": {
-                    "Economics": [ { sub: "Indian Economy, planning, mobilization, growth", status: true }, { sub: "Government Budgeting.", status: true } ]
-                },
-                "Maths P2": {
-                    "Modern Algebra": [ { sub: "Groups, subgroups, cyclic groups, cosets...", status: true }, { sub: "Rings, subrings and ideals, homomorphisms", status: true } ]
-                }
-            };
-        }
+        const initialRawData = {
+            "GS1": {
+                "Salient aspects of Art, Architecture, Literature": [ { sub: "Art", status: false }, { sub: "Architecture", status: false }, { sub: "Literature", status: false } ],
+                "MIH - Mid-18th century – Present": [ { sub: "Significant events, personalities, issues", status: false }, { sub: "Freedom Struggle (various stages, important contributors)", status: false } ],
+                "World History": [ { sub: "18th century events (e.g. Ind’l revo, WWs, redrawn boundaries)", status: false }, { sub: "Political philosophies (e.g. communism, capitalism, socialism)", status: false } ],
+                "Post-Independence": [ { sub: "Consolidation & Reorganisation", status: false } ],
+                "Society": [ { sub: "Salient Features", status: false }, { sub: "Diversity of India , Globalisation", status: false }, { sub: "Role of women and womens organisation", status: false }, { sub: "Urbanisation", status: false }, { sub: "Population and associated issues", status: false }, { sub: "Poverty & developmental issues", status: false }, { sub: "Communalism, Regionalism, Secularism", status: false } ],
+                "World & Human Geography": [ { sub: "World physical geography salient features", status: false }, { sub: "Distribution of key natural resources across the world", status: false }, { sub: "Factors responsible for the location of primary, secondary, and tertiary sector industries", status: false } ],
+                "Physical Geography": [ { sub: "Critical geographical features, flora, fauna", status: false }, { sub: "Salient Features of World Physical Geography; Important Geophysical phenomena", status: false } ]
+            },
+            "GS2": {
+                "Polity": [ { sub: "Indian Constitution- historical underpinnings, evolution", status: false }, { sub: "Functions and responsibilities of the Union and the States", status: false }, { sub: "Comparison of the Indian constitutional scheme", status: false }, { sub: "Separation of powers between various organs", status: false }, { sub: "Parliament and State Legislatures", status: false }, { sub: "Appointment to various Constitutional posts", status: false }, { sub: "Structure, organization and functioning of Executive and Judiciary", status: false }, { sub: "Pressure groups and formal/informal associations", status: false }, { sub: "Salient features of the Representation of People’s Act", status: false }, { sub: "Statutory, regulatory and various quasi-judicial bodies", status: false } ],
+                "Governance": [ { sub: "Government policies and interventions for development", status: false }, { sub: "Development processes and the role of NGOs, SHGs", status: false }, { sub: "Role of civil services in a democracy", status: false }, { sub: "Important aspects of governance, transparency and accountability", status: false } ],
+                "Social Justice": [ { sub: "Welfare schemes for vulnerable sections of the population", status: false }, { sub: "Issues relating to development and management of Social Sector", status: false }, { sub: "Issues relating to poverty and hunger", status: false } ],
+                "IR": [ { sub: "Bilateral, regional and global groupings", status: false }, { sub: "India and its neighborhood- relations", status: false }, { sub: "Important International institutions", status: false }, { sub: "Effect of policies and politics of developed and developing countries", status: false } ]
+            },
+            "GS3": {
+                "Economics": [ { sub: "Indian Economy and issues relating to planning", status: true }, { sub: "Government Budgeting.", status: true }, { sub: "Inclusive growth and issues arising from it.", status: true }, { sub: "Land reforms in India.", status: true }, { sub: "Effects of liberalization on the economy", status: false }, { sub: "Infrastructure: Energy, Ports, Roads, Airports, Railways etc.", status: false }, { sub: "Investment models.", status: false } ],
+                "Agriculture": [ { sub: "Major crops cropping patterns", status: false }, { sub: "Different types of irrigation", status: false }, { sub: "Transport and marketing of agricultural produce", status: false }, { sub: "e-technology in the aid of farmers", status: false }, { sub: "Economics of animal-rearing.", status: false }, { sub: "Food processing and related industries in India", status: false }, { sub: "Public Distribution System", status: false }, { sub: "Issues related to direct and indirect farm subsidies", status: false }, { sub: "Issues of buffer stocks and food security", status: false } ],
+                "SnT": [ { sub: "Science and Technology- developments", status: false }, { sub: "Achievements of Indians in science & technology", status: false }, { sub: "Indigenization of technology", status: false }, { sub: "Awareness in the fields of IT, Space, Computers, robotics", status: false }, { sub: "Issues relating to IPR", status: false } ],
+                "Environment": [ { sub: "Biodiversity & Conservation", status: false }, { sub: "Environmental pollution and degradation", status: false }, { sub: "Environmental impact assessment", status: false }, { sub: "Disaster and disaster management.", status: false } ],
+                "Security": [ { sub: "Role of external state and non-state actors", status: false }, { sub: "Linkages between development and spread of extremism.", status: false }, { sub: "Challenges to internal security through communication networks", status: false }, { sub: "Basics of cyber security", status: false }, { sub: "Money Laundering and its prevention", status: false }, { sub: "Various Security forces and agencies", status: false }, { sub: "Security challenges and their management in border areas", status: false }, { sub: "Linkages of organized crime with terrorism", status: false } ]
+            },
+            "GS4": {
+                "Ethics": [ { sub: "Ethics and Human Interface", status: false }, { sub: "Human Values- lessons from great leaders", status: false }, { sub: "Attitude- content, structure, function", status: false }, { sub: "Aptitude and foundational values for Civil Service", status: false }, { sub: "Emotional intelligence-concepts", status: false }, { sub: "Contributions of moral thinkers and philosophers", status: false }, { sub: "Public/Civil service values and Ethics", status: false }, { sub: "Probity in Governance", status: false }, { sub: "Case Studies on above issues.", status: false } ]
+            },
+            "Essay": {
+                "Philosophical/ Abstract Essays": [ { sub: "Philosophical Essay 1", status: false }, { sub: "Philosophical Essay 2", status: false }, { sub: "Philosophical Essay 3", status: false }, { sub: "Philosophical Essay 4", status: false } ],
+                "Topic Essays": [ { sub: "Topic Essay 1", status: false }, { sub: "Topic Essay 2", status: false }, { sub: "Topic Essay 3", status: false }, { sub: "Topic Essay 4", status: false } ]
+            },
+            "Maths P1": {
+                "Linear Algebra": [ { sub: "Vector spaces over R and C", status: false }, { sub: "Linear dependence and independence", status: false }, { sub: "Subspaces , Bases , Dimensions", status: false }, { sub: "Linear transformations", status: false }, { sub: "Rank and nullity", status: false }, { sub: "Algebra of Matrices", status: false }, { sub: "Row and column reduction", status: false }, { sub: "Rank of a matrix", status: false }, { sub: "Inverse of a matrix", status: false }, { sub: "Solution of system of linear equations", status: false }, { sub: "Eigenvalues and eigenvectors", status: false }, { sub: "Cayley-Hamilton theorem", status: false }, { sub: "Symmetric, Skew Symmetric, Hermitian matrices", status: false } ],
+                "Calculus": [ { sub: "Real numbers, functions, limits, continuity", status: false }, { sub: "Curve tracing", status: false }, { sub: "Functions of two or three variables", status: false }, { sub: "Limits, continuity, partial derivatives", status: false }, { sub: "Indefinite integrals", status: false }, { sub: "Infinite and improper integral", status: false }, { sub: "Double and triple integrals", status: false }, { sub: "Areas, surface and volumes.", status: false } ],
+                "Analytic Geometry": [ { sub: "Cartesian And Polar Coordinates", status: false }, { sub: "Second Degree Equations", status: false }, { sub: "Reduction To Canonical Forms", status: false }, { sub: "Straight Lines", status: false }, { sub: "Shortest Distance Between Two Skew Lines", status: false }, { sub: "Plane", status: false }, { sub: "Sphere", status: false }, { sub: "Cone", status: false }, { sub: "Cylinder", status: false }, { sub: "Paraboloid", status: false }, { sub: "Ellipsoid", status: false }, { sub: "Hyperboloid", status: false } ],
+                "ODE": [ { sub: "Formulation Of Differential Equations", status: false }, { sub: "Equations Of First Order And First Degree", status: false }, { sub: "Orthogonal Trajectory", status: false }, { sub: "Equations of First Order but not of First Degree", status: false }, { sub: "Clairauts Equation", status: false }, { sub: "Second And Higher Order Linear Equations", status: false }, { sub: "Complementary Function, Particular Integral", status: false }, { sub: "Second Order Linear Equations With Variable Coefficients", status: false }, { sub: "Euler-Cauchy Equation", status: false }, { sub: "Method Of Variation Of Parameters", status: false }, { sub: "Laplace And Inverse Laplace Transforms", status: false }, { sub: "Application To Initial Value Problems", status: false } ],
+                "Vectors": [ { sub: "Scalar and vector fields", status: false }, { sub: "Gradient, divergence and curl", status: false }, { sub: "Higher order derivatives", status: false }, { sub: "Vector identities", status: false }, { sub: "Application to geometry: Curves in space", status: false }, { sub: "Serret-Frenet's formulae", status: false }, { sub: "Green’s, Gauss and Stokes’ theorems.", status: false } ],
+                "Dynamics and statics": [ { sub: "Rectilinear motion, simple harmonic motion", status: false }, { sub: "Constrained motion", status: false }, { sub: "Work and energy, conservation of energy", status: false }, { sub: "Kepler’s laws, orbits under central forces", status: false }, { sub: "Equilibrium of a system of particles", status: false }, { sub: "Work and potential energy, friction", status: false }, { sub: "Principle of virtual work", status: false }, { sub: "Stability of equilibrium", status: false } ]
+            },
+            "Maths P2": {
+                "Modern Algebra": [ { sub: "Groups, subgroups, cyclic groups, cosets", status: true }, { sub: "Rings, subrings and ideals, homomorphisms", status: true }, { sub: "Integral domains, principal ideal domains", status: false }, { sub: "Fields, quotient fields.", status: false } ],
+                "Real Analysis": [ { sub: "Real number system as an ordered field", status: false }, { sub: "Sequences, limit of a sequence", status: false }, { sub: "Series and its convergence", status: false }, { sub: "Continuity and uniform continuity of functions", status: false }, { sub: "Riemann integral, improper integrals", status: false }, { sub: "Fundamental theorems of integral calculus", status: false }, { sub: "Uniform convergence, continuity, differentiability", status: false }, { sub: "Partial derivatives of functions", status: false } ],
+                "Complex Analysis": [ { sub: "Analytic function, Cauchy-Riemann equations", status: false }, { sub: "Singularities", status: false }, { sub: "Laurent’s series , Taylors Series", status: false }, { sub: "Cauchy’s residue theorem", status: false }, { sub: "Contour integration.", status: false } ],
+                "Linear Programming": [ { sub: "Linear programming problems", status: false }, { sub: "Graphical method and simplex method", status: false }, { sub: "Duality", status: false }, { sub: "Transportation and assignment problems.", status: false } ],
+                "PDE": [ { sub: "Family of surfaces in three dimensions", status: false }, { sub: "Solution of quasilinear partial differential equations", status: false }, { sub: "Linear partial differential equations", status: false }, { sub: "Equation of a vibrating string, heat equation", status: false } ],
+                "Numerical Analysis": [ { sub: "Numerical methods: solution of algebraic equations", status: false }, { sub: "Solution of system of linear equations", status: false }, { sub: "Newton’s and Lagrange’s interpolation", status: false }, { sub: "Numerical integration: Trapezoidal rule", status: false }, { sub: "Numerical solution of ordinary differential equations", status: false }, { sub: "Computer Programming: Binary system", status: false }, { sub: "Arithmetic and logical operations", status: false }, { sub: "Octal and Hexadecimal systems", status: false }, { sub: "Conversion to and from decimal systems", status: false }, { sub: "Algebra of binary numbers", status: false }, { sub: "Elements of computer systems", status: false }, { sub: "Basic logic gates and truth tables", status: false }, { sub: "Representation of integers and reals", status: false }, { sub: "Algorithms and flow charts", status: false } ],
+                "Mechanics and Fluid dynamics": [ { sub: "Generalised coordinates", status: false }, { sub: "D’Alembert’s principle", status: false }, { sub: "Hamilton equations", status: false }, { sub: "Moment of inertia", status: false }, { sub: "Motion of rigid bodies", status: false }, { sub: "Equation of continuity", status: false }, { sub: "Euler’s equation of motion", status: false }, { sub: "Stream-lines, path of a particle", status: false }, { sub: "Potential flow", status: false }, { sub: "Two-dimensional and axisymmetric motion", status: false }, { sub: "Sources and sinks, vortex motion", status: false }, { sub: "Navier-Stokes equation", status: false } ]
+            }
+        };
 
+        let appData = JSON.parse(localStorage.getItem('upsc_data_full_v3')) || initialRawData;
         let calendarData = JSON.parse(localStorage.getItem('upsc_cal_v2')) || {};
         let timeData = JSON.parse(localStorage.getItem('upsc_time')) || {};
         
         let currentSubject = "GS3"; 
         let doughnutChartInst = null;
         let barChartInst = null;
+        let syllabusSubjectChartInst = null;
 
         const MAINS_DATE = new Date("2026-08-21T00:00:00");
         const TODAY = new Date();
         const TODAY_STR = TODAY.toISOString().split('T')[0];
 
-        if(!timeData[TODAY_STR]) timeData[TODAY_STR] = 0; // seconds
+        if(!timeData[TODAY_STR]) timeData[TODAY_STR] = 0; 
 
         document.getElementById('current-date').textContent = TODAY.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -310,7 +358,7 @@
             document.getElementById('view-' + viewId).classList.add('active');
 
             if (viewId === 'dashboard') renderDashboard();
-            if (viewId === 'syllabus') renderSyllabusSidebar();
+            if (viewId === 'syllabus') { renderSyllabusNavigation(); renderSyllabusCards(); }
             if (viewId === 'calendar') renderCalendar();
         }
 
@@ -381,62 +429,104 @@
         }
 
         // ==========================================
-        // SYLLABUS TRACKER LOGIC
+        // SYLLABUS TRACKER LOGIC (HORIZONTAL REDESIGN)
         // ==========================================
-        function renderSyllabusSidebar() {
+        function renderSyllabusNavigation() {
             const stats = calculateStats();
-            const sidebar = document.getElementById('subject-sidebar');
-            sidebar.innerHTML = Object.keys(appData).map(subj => `
-                <div class="subject-btn ${subj === currentSubject ? 'active' : ''}" onclick="selectSubject('${subj}')">
-                    <span>${subj}</span><span style="font-size: 0.8rem; opacity: 0.7;">${stats.subjectStats[subj].percent}%</span>
+            const navContainer = document.getElementById('subject-nav-container');
+            
+            navContainer.innerHTML = Object.keys(appData).map(subj => `
+                <div class="subj-btn-hz ${subj === currentSubject ? 'active' : ''}" onclick="selectSubject('${subj}')">
+                    ${subj} 
+                    <span class="subj-percent-badge">${stats.subjectStats[subj].percent}%</span>
                 </div>
             `).join('');
-            renderAccordions();
         }
 
-        function selectSubject(subj) { currentSubject = subj; renderSyllabusSidebar(); }
-
-        function toggleAccordionDisplay(id) {
-            const body = document.getElementById('acc-body-' + id);
-            body.classList.toggle('open');
+        function selectSubject(subj) { 
+            currentSubject = subj; 
+            renderSyllabusNavigation();
+            renderSyllabusCards(); 
         }
 
-        function renderAccordions() {
-            const container = document.getElementById('accordion-container');
+        function renderSyllabusCards() {
+            const container = document.getElementById('topic-cards-container');
             const mainTopics = appData[currentSubject];
-            let html = ''; let idCounter = 0;
+            
+            let html = ''; 
+            let chartLabels = [];
+            let chartData = [];
             
             for (const [mainTitle, subtopics] of Object.entries(mainTopics)) {
                 let total = subtopics.length;
                 let done = subtopics.filter(s => s.status).length;
                 let percent = total > 0 ? Math.round((done/total)*100) : 0;
                 
+                chartLabels.push(mainTitle.length > 20 ? mainTitle.substring(0, 20) + '...' : mainTitle);
+                chartData.push(percent);
+                
                 html += `
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordionDisplay(${idCounter})">
-                        <div>
-                            ${mainTitle}
-                            <div class="progress-text">${done}/${total} Completed (${percent}%)</div>
+                <div class="main-topic-card">
+                    <div class="mtc-header">
+                        <div class="mtc-title">${mainTitle}</div>
+                        <div class="mtc-progress">
+                            <span>${done} of ${total} Completed</span>
+                            <span style="color: ${percent === 100 ? 'var(--accent-green)' : 'var(--accent-yellow)'}">${percent}%</span>
                         </div>
                     </div>
-                    <div class="accordion-body" id="acc-body-${idCounter}">
+                    <div class="mtc-body">
                         ${subtopics.map((sub, index) => `
                             <div class="subtopic-row">
                                 <input type="checkbox" ${sub.status ? 'checked' : ''} onchange="toggleSubtopic('${mainTitle}', ${index})">
-                                <span class="subtopic-text ${sub.status ? 'status-done' : ''}">${sub.sub}</span>
+                                <div class="subtopic-text ${sub.status ? 'status-done' : ''}">${sub.sub}</div>
                             </div>
                         `).join('')}
                     </div>
                 </div>`;
-                idCounter++;
             }
             container.innerHTML = html;
+            
+            // Update the specific syllabus bar chart
+            document.getElementById('syllabus-chart-title').textContent = `${currentSubject} Analysis`;
+            renderSyllabusChart(chartLabels, chartData);
         }
 
         function toggleSubtopic(mainTitle, index) {
             appData[currentSubject][mainTitle][index].status = !appData[currentSubject][mainTitle][index].status;
-            localStorage.setItem('upsc_data_v2', JSON.stringify(appData));
-            renderSyllabusSidebar(); 
+            localStorage.setItem('upsc_data_full_v3', JSON.stringify(appData));
+            renderSyllabusNavigation(); 
+            renderSyllabusCards();
+            
+            // Update top counts
+            const stats = calculateStats();
+            document.getElementById('top-topic-count').textContent = `📚 ${stats.completed} / ${stats.total} topics`;
+        }
+
+        function renderSyllabusChart(labels, data) {
+            const ctx = document.getElementById('syllabusSubjectChart').getContext('2d');
+            if(syllabusSubjectChartInst) syllabusSubjectChartInst.destroy();
+            
+            syllabusSubjectChartInst = new Chart(ctx, {
+                type: 'bar',
+                data: { 
+                    labels: labels, 
+                    datasets: [{ 
+                        label: '% Completed', 
+                        data: data, 
+                        backgroundColor: '#a855f7', 
+                        borderRadius: 4 
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    scales: { 
+                        y: { beginAtZero: true, max: 100, ticks: { color: '#9ca3af' }, grid: { color: '#444444' } },
+                        x: { ticks: { color: '#9ca3af' }, grid: { display: false } }
+                    }, 
+                    plugins: { legend: { display: false } } 
+                }
+            });
         }
 
         // ==========================================
@@ -466,7 +556,6 @@
                 let doneT = data.tasks.filter(t => t.done).length;
                 let eff = totalT > 0 ? Math.round((doneT/totalT)*100) : 0;
                 
-                // Show a mini list of tasks
                 let taskHtml = data.tasks.slice(0, 4).map(t => `
                     <li><input type="checkbox" ${t.done ? 'checked' : ''}> <span style="${t.done ? 'text-decoration:line-through; opacity:0.5;' : ''}">${t.text.substring(0,20)}</span></li>
                 `).join('');
@@ -496,7 +585,7 @@
         function openModal(dateStr, dayNum) {
             selectedDateStr = dateStr;
             let data = calendarData[dateStr] || { tasks: [], targetHrs: 0 };
-            currentModalTasks = JSON.parse(JSON.stringify(data.tasks)); // deep copy
+            currentModalTasks = JSON.parse(JSON.stringify(data.tasks)); 
             
             document.getElementById('modal-date-title').textContent = `Plan for ${dateStr}`;
             document.getElementById('modal-target-hours').value = data.targetHrs;
@@ -543,11 +632,10 @@
         // POMODORO & STOPWATCH LOGIC
         // ==========================================
         
-        // Pomodoro State
         let pomoInterval = null;
         let pomoTime = 25 * 60; 
         let pomoRunning = false;
-        let pomoMode = 'work'; // 'work' or 'break'
+        let pomoMode = 'work';
 
         function updatePomoSettings() {
             if(!pomoRunning) {
@@ -608,9 +696,8 @@
             switchPomoMode('work');
         }
 
-        // Stopwatch State
         let swInterval = null;
-        let swTime = 0; // tracking session seconds
+        let swTime = 0;
         let swRunning = false;
 
         function updateSwDisplay() {
@@ -648,10 +735,8 @@
             updateSwDisplay();
         }
 
-        // Global Time Logging
         function logTimeTick() {
             timeData[TODAY_STR]++;
-            // Save every 10 seconds to limit writing overhead
             if(timeData[TODAY_STR] % 10 === 0) localStorage.setItem('upsc_time', JSON.stringify(timeData));
         }
 
@@ -661,10 +746,8 @@
             document.getElementById('top-hours').textContent = `⏱ ${todayHrs} hrs today`;
         }
 
-        // Music Loader
         function loadMusic() {
             let url = document.getElementById('music-url').value;
-            // Convert standard youtube links to embed links
             if (url.includes('youtu.be/')) {
                 let id = url.split('youtu.be/')[1].split('?')[0];
                 url = `https://www.youtube.com/embed/${id}`;
