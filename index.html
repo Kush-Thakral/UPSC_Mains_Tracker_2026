@@ -46,7 +46,7 @@
         .btn { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-save { background: var(--accent-blue); color: white; }
         .btn-close { background: var(--border-color); color: white; }
-        input, select { background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 5px; }
+        input, select, textarea { background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 5px; }
 
         /* --- Dashboard Counters --- */
         .counters-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 30px; }
@@ -102,17 +102,24 @@
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
         .day-name { text-align: center; font-weight: bold; color: var(--text-muted); padding: 10px 0; }
-        .calendar-day { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; min-height: 140px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; transition: 0.2s; }
+        .calendar-day { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; min-height: 140px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; transition: 0.2s; position: relative; }
         .calendar-day:hover { border-color: var(--accent-blue); }
         .calendar-day.today { border: 2px solid var(--accent-yellow); background: rgba(250, 204, 21, 0.05); }
+        
+        .calendar-day.closed-day { opacity: 0.5; background-color: #1a1a1a; border-style: dashed; }
+        .calendar-day.closed-day:hover { opacity: 0.8; }
+        .closed-badge { position: absolute; top: 10px; right: 10px; font-size: 1.5rem; opacity: 0.3; }
+        .eff-panel { background: rgba(0,0,0,0.5); padding: 8px; border-radius: 5px; margin-top: auto; display: flex; flex-direction: column; gap: 4px; border: 1px solid #333; }
+        .eff-row { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: bold; }
+
         .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .day-number { font-size: 1.1rem; font-weight: bold; color: var(--text-muted); }
         .calendar-day.today .day-number { color: var(--accent-yellow); }
-        .day-eff { font-size: 0.75rem; background: var(--bg-color); padding: 2px 6px; border-radius: 4px; color: var(--text-muted); }
-        .day-plan { font-size: 0.8rem; color: var(--text-main); flex: 1; overflow: hidden; }
+        .day-plan { font-size: 0.8rem; color: var(--text-main); flex: 1; overflow: hidden; margin-bottom: 5px; }
+        
         .task-list-mini { list-style: none; padding: 0; }
         .task-list-mini li { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; }
-        .task-list-mini input[type="checkbox"] { width: 12px; height: 12px; pointer-events: none; }
+        .status-icon { font-size: 0.9rem; }
         
         /* Modals */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
@@ -123,7 +130,21 @@
         .task-ul { list-style: none; padding: 0; margin-bottom: 20px; }
         .task-ul li { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: var(--bg-color); padding: 8px; border-radius: 5px; }
         .task-ul span { flex: 1; font-size: 0.9rem; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px; }
+        
+        .task-status-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; transition: 0.2s; }
+        .task-status-btn:hover { background: rgba(255,255,255,0.1); }
+        
+        .modal-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px; }
+
+        /* --- Notes Tab Styles --- */
+        .notes-container { display: flex; flex-direction: column; height: 75vh; gap: 15px; }
+        .notes-header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .notes-nav { display: flex; align-items: center; gap: 15px; }
+        .notes-nav button { background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .notes-nav button:hover { background: #555; }
+        .notes-nav span { font-size: 1.2rem; font-weight: bold; color: var(--accent-blue); }
+        .notes-editor { flex: 1; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; color: var(--text-main); font-family: var(--font-family); font-size: 1rem; resize: none; outline: none; }
+        .notes-editor:focus { border-color: var(--accent-blue); }
 
         /* --- Time Tracker Editable Logs & Charts --- */
         .tracker-layout { display: flex; gap: 20px; margin-bottom: 20px; }
@@ -184,11 +205,11 @@
         <div class="nav-item active" id="tab-dashboard" onclick="switchTab('dashboard')">📊 Dashboard</div>
         <div class="nav-item" id="tab-syllabus" onclick="switchTab('syllabus')">📑 Syllabus Tracker</div>
         <div class="nav-item" id="tab-calendar" onclick="switchTab('calendar')">📅 Calendar</div>
+        <div class="nav-item" id="tab-notes" onclick="switchTab('notes')">📝 Notes</div>
         <div class="nav-item" id="tab-timer" onclick="switchTab('timer')">⏱ Time Tracker</div>
     </div>
 
     <div class="container active" id="view-dashboard">
-        
         <div class="counters-grid">
             <div class="counter-card">
                 <div class="counter-title">Daily AW-10</div>
@@ -269,9 +290,24 @@
         <div class="calendar-grid" id="calendar-days"></div>
     </div>
 
+    <div class="container" id="view-notes">
+        <div class="notes-container">
+            <div class="notes-header">
+                <div class="notes-nav">
+                    <button onclick="changeNoteDate(-1)">&#8592; Prev</button>
+                    <span id="notes-date-label">2026-06-21</span>
+                    <button onclick="changeNoteDate(1)">Next &#8594;</button>
+                </div>
+                <div>
+                    <button class="btn btn-save" onclick="exportNotes()">📥 Export JSON</button>
+                </div>
+            </div>
+            <textarea class="notes-editor" id="notes-textarea" placeholder="Write your daily journal here... Auto-saves as you type." oninput="saveNote()"></textarea>
+        </div>
+    </div>
+
     <div class="container" id="view-timer">
         <div class="tracker-layout">
-            
             <div class="time-log-panel">
                 <h3 style="margin-bottom: 15px; color: var(--text-main);">Daily Logs</h3>
                 <div class="log-month-nav">
@@ -279,9 +315,7 @@
                     <span id="log-month-label">Jun 2026</span>
                     <button onclick="changeLogMonth(1)">&#8594;</button>
                 </div>
-                
                 <div id="editable-logs-list"></div>
-
                 <div style="margin-top: auto; border-top: 1px dashed var(--border-color); padding-top: 15px; display: flex; justify-content: space-between; font-weight: bold; color: var(--accent-green); font-size: 1.1rem;">
                     <span>Month Total:</span>
                     <span id="log-month-total">0 hrs</span>
@@ -341,18 +375,27 @@
     <div class="modal" id="cal-modal">
         <div class="modal-content">
             <h3 id="modal-date-title" style="margin-bottom: 15px; color: var(--accent-blue);">Plan for Date</h3>
-            <div class="modal-row">
-                <label style="color: var(--text-muted);">Target Study Hours:</label>
-                <input type="number" id="modal-target-hours" step="0.5" min="0" max="24" style="width: 80px;">
+            <div class="modal-row" style="justify-content: space-between;">
+                <div>
+                    <label style="color: var(--text-muted);">Target Hrs:</label>
+                    <input type="number" id="modal-target-hours" step="0.5" min="0" max="24" style="width: 70px;">
+                </div>
             </div>
+            
             <div class="modal-row">
                 <input type="text" id="modal-new-task" placeholder="Add a new goal/topic..." style="flex: 1;">
                 <button class="btn btn-save" onclick="addModalTask()">Add</button>
             </div>
             <ul class="task-ul" id="modal-task-list"></ul>
+            
             <div class="modal-actions">
-                <button class="btn btn-close" onclick="closeModal()">Close</button>
-                <button class="btn btn-save" onclick="saveDay()">Save & Close</button>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: bold; color: var(--accent-yellow);">
+                    <input type="checkbox" id="modal-day-closed" style="width: 20px; height: 20px;"> Mark Day as Closed
+                </label>
+                <div>
+                    <button class="btn btn-close" onclick="closeModal()">Close</button>
+                    <button class="btn btn-save" onclick="saveDay()">Save & Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -366,287 +409,53 @@
     </div>
 
     <script>
-        // Exact Data extracted verbatim from the CSV (Unedited) [cite: 3, 4, 5, 6, 7, 8, 9]
+        // Unedited exact data structure
         const initialRawData = {
             "GS1": {
-                "Salient aspects of Art, Architecture, Literature from Ancient to Modern Times": [
-                    { sub: "Art", status: false },
-                    { sub: "Architecture", status: false },
-                    { sub: "Literature", status: false }
-                ],
-                "MIH - Mid-18th century – Present": [
-                    { sub: "Significant events, personalities, issues", status: false },
-                    { sub: "Freedom Struggle (various stages, important contributors from different parts of the country)", status: false }
-                ],
-                "World History": [
-                    { sub: "18th century events (e.g. Ind’l revo, WWs, redrawn boundaries, colonisation, decolonisation);", status: false },
-                    { sub: "Political philosophies (e.g. communism, capitalism, socialism) and their effect on society", status: false }
-                ],
-                "Post-Independence (consolidation and reorganisation within country)": [
-                    { sub: "Consolidation & Reorganisation", status: false }
-                ],
-                "Society": [
-                    { sub: "Salient Features", status: false },
-                    { sub: "Diversity of India , Globalisation", status: false },
-                    { sub: "Role of women and womens organisation", status: false },
-                    { sub: "Urbanisation", status: false },
-                    { sub: "Population and associated issues", status: false },
-                    { sub: "Poverty & developmental issues", status: false },
-                    { sub: "Communalism, Regionalism, Secularism; Social Empowerment", status: false }
-                ],
-                "World & Human Geography": [
-                    { sub: "World physical geography salient features", status: false },
-                    { sub: "Distribution of key natural resources across the world (including South Asia and the Indian sub continent)", status: false },
-                    { sub: "Factors responsible for the location of primary, secondary, and tertiary sector industries in various parts of the world (including India).", status: false }
-                ],
-                "Physical Geography": [
-                    { sub: "Critical geographical features (including water bodies , ice caps) , flora, fauna (location changes and effects therof)", status: false },
-                    { sub: "Salient Features of World Physical Geography; Important Geophysical phenomena (earthquakes, tsunami, volcanoes, cyclones); Geographical features and location;", status: false }
-                ]
+                "Salient aspects of Art, Architecture, Literature from Ancient to Modern Times": [ { sub: "Art", status: false }, { sub: "Architecture", status: false }, { sub: "Literature", status: false } ],
+                "MIH - Mid-18th century – Present": [ { sub: "Significant events, personalities, issues", status: false }, { sub: "Freedom Struggle (various stages, important contributors from different parts of the country)", status: false } ],
+                "World History": [ { sub: "18th century events (e.g. Ind’l revo, WWs, redrawn boundaries, colonisation, decolonisation);", status: false }, { sub: "Political philosophies (e.g. communism, capitalism, socialism) and their effect on society", status: false } ],
+                "Post-Independence (consolidation and reorganisation within country)": [ { sub: "Consolidation & Reorganisation", status: false } ],
+                "Society": [ { sub: "Salient Features", status: false }, { sub: "Diversity of India , Globalisation", status: false }, { sub: "Role of women and womens organisation", status: false }, { sub: "Urbanisation", status: false }, { sub: "Population and associated issues", status: false }, { sub: "Poverty & developmental issues", status: false }, { sub: "Communalism, Regionalism, Secularism; Social Empowerment", status: false } ],
+                "World & Human Geography": [ { sub: "World physical geography salient features", status: false }, { sub: "Distribution of key natural resources across the world (including South Asia and the Indian sub continent)", status: false }, { sub: "Factors responsible for the location of primary, secondary, and tertiary sector industries in various parts of the world (including India).", status: false } ],
+                "Physical Geography": [ { sub: "Critical geographical features (including water bodies , ice caps) , flora, fauna (location changes and effects therof)", status: false }, { sub: "Salient Features of World Physical Geography; Important Geophysical phenomena (earthquakes, tsunami, volcanoes, cyclones); Geographical features and location;", status: false } ]
             },
             "GS2": {
-                "Polity": [
-                    { sub: "Indian Constitution- historical underpinnings, evolution, features, amendments, significant provisions and basic structure", status: false },
-                    { sub: "Functions and responsibilities of the Union and the States, issues and challenges pertaining to the federal structure, devolution of powers and finances up to local levels and challenges therein", status: false },
-                    { sub: "Comparison of the Indian constitutional scheme with that of other countries", status: false },
-                    { sub: "Separation of powers between various organs dispute redressal mechanisms and institutions", status: false },
-                    { sub: "Parliament and State Legislatures – structure, functioning, conduct of business, powers & privileges and issues arising out of these", status: false },
-                    { sub: "Appointment to various Constitutional posts, powers, functions and responsibilities of various Constitutional Bodies", status: false },
-                    { sub: "Structure, organization and functioning of the Executive and the Judiciary Ministries and Departments of the Government", status: false },
-                    { sub: "Pressure groups and formal/informal associations and their role in the Polity", status: false },
-                    { sub: "Salient features of the Representation of People’s Act", status: false },
-                    { sub: "Statutory, regulatory and various quasi-judicial bodies", status: false }
-                ],
-                "Governance": [
-                    { sub: "Government policies and interventions for development in various sectors and issues arising out of their design and implementation", status: false },
-                    { sub: "Development processes and the development industry the role of NGOs, SHGs, various groups and associations, donors, charities, institutional and other stakeholders", status: false },
-                    { sub: "Role of civil services in a democracy", status: false },
-                    { sub: "Important aspects of governance, transparency and accountability, e-governance- applications, models, successes, limitations, and potential; citizens charters, transparency & accountability and institutional and other measures", status: false }
-                ],
-                "Social Justice": [
-                    { sub: "Welfare schemes for vulnerable sections of the population by the Centre and States and the performance of these schemes; mechanisms, laws, institutions and Bodies constituted for the protection and betterment of these vulnerable sections", status: false },
-                    { sub: "Issues relating to development and management of Social Sector/Services relating to Health, Education, Human Resources", status: false },
-                    { sub: "Issues relating to poverty and hunger", status: false }
-                ],
-                "IR": [
-                    { sub: "Bilateral, regional and global groupings and agreements involving India and/or affecting India’s interests", status: false },
-                    { sub: "India and its neighborhood- relations", status: false },
-                    { sub: "Important International institutions, agencies and fora, their structure, mandate", status: false },
-                    { sub: "Effect of policies and politics of developed and developing countries on India’s interests, Indian diaspora", status: false }
-                ]
+                "Polity": [ { sub: "Indian Constitution- historical underpinnings, evolution, features, amendments, significant provisions and basic structure", status: false }, { sub: "Functions and responsibilities of the Union and the States, issues and challenges pertaining to the federal structure, devolution of powers and finances up to local levels and challenges therein", status: false }, { sub: "Comparison of the Indian constitutional scheme with that of other countries", status: false }, { sub: "Separation of powers between various organs dispute redressal mechanisms and institutions", status: false }, { sub: "Parliament and State Legislatures – structure, functioning, conduct of business, powers & privileges and issues arising out of these", status: false }, { sub: "Appointment to various Constitutional posts, powers, functions and responsibilities of various Constitutional Bodies", status: false }, { sub: "Structure, organization and functioning of the Executive and the Judiciary Ministries and Departments of the Government", status: false }, { sub: "Pressure groups and formal/informal associations and their role in the Polity", status: false }, { sub: "Salient features of the Representation of People’s Act", status: false }, { sub: "Statutory, regulatory and various quasi-judicial bodies", status: false } ],
+                "Governance": [ { sub: "Government policies and interventions for development in various sectors and issues arising out of their design and implementation", status: false }, { sub: "Development processes and the development industry the role of NGOs, SHGs, various groups and associations, donors, charities, institutional and other stakeholders", status: false }, { sub: "Role of civil services in a democracy", status: false }, { sub: "Important aspects of governance, transparency and accountability, e-governance- applications, models, successes, limitations, and potential; citizens charters, transparency & accountability and institutional and other measures", status: false } ],
+                "Social Justice": [ { sub: "Welfare schemes for vulnerable sections of the population by the Centre and States and the performance of these schemes; mechanisms, laws, institutions and Bodies constituted for the protection and betterment of these vulnerable sections", status: false }, { sub: "Issues relating to development and management of Social Sector/Services relating to Health, Education, Human Resources", status: false }, { sub: "Issues relating to poverty and hunger", status: false } ],
+                "IR": [ { sub: "Bilateral, regional and global groupings and agreements involving India and/or affecting India’s interests", status: false }, { sub: "India and its neighborhood- relations", status: false }, { sub: "Important International institutions, agencies and fora, their structure, mandate", status: false }, { sub: "Effect of policies and politics of developed and developing countries on India’s interests, Indian diaspora", status: false } ]
             },
             "GS3": {
-                "Economics": [
-                    { sub: "Indian Economy and issues relating to planning, mobilization of resources, growth, development and employment.", status: true },
-                    { sub: "Government Budgeting.", status: true },
-                    { sub: "Inclusive growth and issues arising from it.", status: true },
-                    { sub: "Land reforms in India.", status: true },
-                    { sub: "Effects of liberalization on the economy, changes in industrial policy and their effects on industrial growth.", status: false },
-                    { sub: "Infrastructure: Energy, Ports, Roads, Airports, Railways etc.", status: false },
-                    { sub: "Investment models.", status: false }
-                ],
-                "Agriculture": [
-                    { sub: "Major crops cropping patterns in various parts of the country", status: false },
-                    { sub: "Different types of irrigation and irrigation systems storage", status: false },
-                    { sub: "Transport and marketing of agricultural produce and issues and related constraints", status: false },
-                    { sub: "e-technology in the aid of farmers , technology missions", status: false },
-                    { sub: "Economics of animal-rearing.", status: false },
-                    { sub: "Food processing and related industries in India- scope and significance, location, upstream and downstream requirements, supply chain management.", status: false },
-                    { sub: "Public Distribution System objectives, functioning, limitations, revamping", status: false },
-                    { sub: "Issues related to direct and indirect farm subsidies and minimum support prices", status: false },
-                    { sub: "Issues of buffer stocks and food security", status: false }
-                ],
-                "SnT": [
-                    { sub: "Science and Technology- developments and their applications and effects in everyday life", status: false },
-                    { sub: "Achievements of Indians in science & technology", status: false },
-                    { sub: "Indigenization of technology and developing new technology.", status: false },
-                    { sub: "Awareness in the fields of IT, Space, Computers, robotics, nano-technology, bio-technology and issues relating to intellectual property rights.", status: false },
-                    { sub: "Issues relating to IPR", status: false }
-                ],
-                "Environment": [
-                    { sub: "Biodiversity & Conservation", status: false },
-                    { sub: "Environmental pollution and degradation", status: false },
-                    { sub: "Environmental impact assessment", status: false },
-                    { sub: "Disaster and disaster management.", status: false }
-                ],
-                "Security": [
-                    { sub: "Role of external state and non-state actors in creating challenges to internal security.", status: false },
-                    { sub: "Linkages between development and spread of extremism.", status: false },
-                    { sub: "Challenges to internal security through communication networks, role of media and social networking sites in internal security challenges", status: false },
-                    { sub: "Basics of cyber security", status: false },
-                    { sub: "Money Laundering and its prevention", status: false },
-                    { sub: "Various Security forces and agencies and their mandate", status: false },
-                    { sub: "Security challenges and their management in border areas", status: false },
-                    { sub: "Linkages of organized crime with terrorism", status: false }
-                ]
+                "Economics": [ { sub: "Indian Economy and issues relating to planning, mobilization of resources, growth, development and employment.", status: true }, { sub: "Government Budgeting.", status: true }, { sub: "Inclusive growth and issues arising from it.", status: true }, { sub: "Land reforms in India.", status: true }, { sub: "Effects of liberalization on the economy, changes in industrial policy and their effects on industrial growth.", status: false }, { sub: "Infrastructure: Energy, Ports, Roads, Airports, Railways etc.", status: false }, { sub: "Investment models.", status: false } ],
+                "Agriculture": [ { sub: "Major crops cropping patterns in various parts of the country", status: false }, { sub: "Different types of irrigation and irrigation systems storage", status: false }, { sub: "Transport and marketing of agricultural produce and issues and related constraints", status: false }, { sub: "e-technology in the aid of farmers , technology missions", status: false }, { sub: "Economics of animal-rearing.", status: false }, { sub: "Food processing and related industries in India- scope and significance, location, upstream and downstream requirements, supply chain management.", status: false }, { sub: "Public Distribution System objectives, functioning, limitations, revamping", status: false }, { sub: "Issues related to direct and indirect farm subsidies and minimum support prices", status: false }, { sub: "Issues of buffer stocks and food security", status: false } ],
+                "SnT": [ { sub: "Science and Technology- developments and their applications and effects in everyday life", status: false }, { sub: "Achievements of Indians in science & technology", status: false }, { sub: "Indigenization of technology and developing new technology.", status: false }, { sub: "Awareness in the fields of IT, Space, Computers, robotics, nano-technology, bio-technology and issues relating to intellectual property rights.", status: false }, { sub: "Issues relating to IPR", status: false } ],
+                "Environment": [ { sub: "Biodiversity & Conservation", status: false }, { sub: "Environmental pollution and degradation", status: false }, { sub: "Environmental impact assessment", status: false }, { sub: "Disaster and disaster management.", status: false } ],
+                "Security": [ { sub: "Role of external state and non-state actors in creating challenges to internal security.", status: false }, { sub: "Linkages between development and spread of extremism.", status: false }, { sub: "Challenges to internal security through communication networks, role of media and social networking sites in internal security challenges", status: false }, { sub: "Basics of cyber security", status: false }, { sub: "Money Laundering and its prevention", status: false }, { sub: "Various Security forces and agencies and their mandate", status: false }, { sub: "Security challenges and their management in border areas", status: false }, { sub: "Linkages of organized crime with terrorism", status: false } ]
             },
             "GS4": {
-                "Ethics": [
-                    { sub: "Ethics and Human Interface- Essence, determinants and consequences of Ethics in human actions; dimensions of ethics; ethics in private and public relationships", status: false },
-                    { sub: "Human Values- lessons from the lives and teachings of great leaders, reformers and administrators; role of family, society and educational institutions in inculcating values", status: false },
-                    { sub: "Attitude- content, structure, function; its influence and relation with thought and behaviour; moral and political attitudes; social influence and persuasion", status: false },
-                    { sub: "Aptitude and foundational values for Civil Service, integrity, impartiality and non-partisanship, objectivity, dedication to public service, empathy, tolerance and compassion towards the weaker-sections", status: false },
-                    { sub: "Emotional intelligence-concepts, and their utilities and application in administration and governance", status: false },
-                    { sub: "Contributions of moral thinkers and philosophers from India and world", status: false },
-                    { sub: "Public/Civil service values and Ethics in Public administration- Status and problems; ethical concerns and dilemmas in government and private institutions; laws, rules, regulations and conscience as sources of ethical guidance; accountability and ethical governance; strengthening of ethical and moral values in governance; ethical issues in international relations and funding; corporate governance", status: false },
-                    { sub: "Probity in Governance- Concept of public service; Philosophical basis of governance and probity; Information; sharing and transparency in government, Right to Information, Codes of Ethics, Codes of Conduct, Citizen’s Charters, Work culture, Quality of service delivery, Utilization of public funds, challenges of corruption", status: false },
-                    { sub: "Case Studies on above issues.", status: false }
-                ]
+                "Ethics": [ { sub: "Ethics and Human Interface- Essence, determinants and consequences of Ethics in human actions; dimensions of ethics; ethics in private and public relationships", status: false }, { sub: "Human Values- lessons from the lives and teachings of great leaders, reformers and administrators; role of family, society and educational institutions in inculcating values", status: false }, { sub: "Attitude- content, structure, function; its influence and relation with thought and behaviour; moral and political attitudes; social influence and persuasion", status: false }, { sub: "Aptitude and foundational values for Civil Service, integrity, impartiality and non-partisanship, objectivity, dedication to public service, empathy, tolerance and compassion towards the weaker-sections", status: false }, { sub: "Emotional intelligence-concepts, and their utilities and application in administration and governance", status: false }, { sub: "Contributions of moral thinkers and philosophers from India and world", status: false }, { sub: "Public/Civil service values and Ethics in Public administration- Status and problems; ethical concerns and dilemmas in government and private institutions; laws, rules, regulations and conscience as sources of ethical guidance; accountability and ethical governance; strengthening of ethical and moral values in governance; ethical issues in international relations and funding; corporate governance", status: false }, { sub: "Probity in Governance- Concept of public service; Philosophical basis of governance and probity; Information; sharing and transparency in government, Right to Information, Codes of Ethics, Codes of Conduct, Citizen’s Charters, Work culture, Quality of service delivery, Utilization of public funds, challenges of corruption", status: false }, { sub: "Case Studies on above issues.", status: false } ]
             },
             "Essay": {
-                "Philosophical/ Abstract Essays": [
-                    { sub: "Philosophical Essay 1", status: false },
-                    { sub: "Philosophical Essay 2", status: false },
-                    { sub: "Philosophical Essay 3", status: false },
-                    { sub: "Philosophical Essay 4", status: false }
-                ],
-                "Topic Essays": [
-                    { sub: "Topic Essay 1", status: false },
-                    { sub: "Topic Essay 2", status: false },
-                    { sub: "Topic Essay 3", status: false },
-                    { sub: "Topic Essay 4", status: false }
-                ]
+                "Philosophical/ Abstract Essays": [ { sub: "Philosophical Essay 1", status: false }, { sub: "Philosophical Essay 2", status: false }, { sub: "Philosophical Essay 3", status: false }, { sub: "Philosophical Essay 4", status: false } ],
+                "Topic Essays": [ { sub: "Topic Essay 1", status: false }, { sub: "Topic Essay 2", status: false }, { sub: "Topic Essay 3", status: false }, { sub: "Topic Essay 4", status: false } ]
             },
             "Maths P1": {
-                "Linear Algebra": [
-                    { sub: "Vector spaces over R and C", status: false },
-                    { sub: "Linear dependence and independence", status: false },
-                    { sub: "Subspaces , Bases , Dimensions", status: false },
-                    { sub: "Linear transformations", status: false },
-                    { sub: "Rank and nullity , matrix of a linear transformation", status: false },
-                    { sub: "Algebra of Matrices", status: false },
-                    { sub: "Row and column reduction , Echelon form , Congruences and similarity", status: false },
-                    { sub: "Rank of a matrix", status: false },
-                    { sub: "Inverse of a matrix", status: false },
-                    { sub: "Solution of system of linear equations", status: false },
-                    { sub: "Eigenvalues and eigenvectors , characteristic polynomial", status: false },
-                    { sub: "Cayley-Hamilton theorem", status: false },
-                    { sub: "Symmetric , Skew Symmetric , Hermitian , Skey Hermitian , Orthogonal , unitary matrices and their eigenvalues", status: false }
-                ],
-                "Calculus": [
-                    { sub: "Real numbers, functions of a real variable, limits, continuity, differentiability, mean-value theorem, Taylor’s theorem with remainders, indeterminate forms, maxima and minima, asymptotes", status: false },
-                    { sub: "Curve tracing", status: false },
-                    { sub: "Functions of two or three variables", status: false },
-                    { sub: "Limits, continuity, partial derivatives, maxima and minima, Lagrange’s method of multipliers, Jacobian. Riemann’s definition of definite integrals", status: false },
-                    { sub: "Indefinite integrals", status: false },
-                    { sub: "Infinite and improper integral", status: false },
-                    { sub: "Double and triple integrals (evaluation techniques only)", status: false },
-                    { sub: "Areas, surface and volumes.", status: false }
-                ],
-                "Analytic Geometry": [
-                    { sub: "Cartesian And Polar Coordinates In Three Dimensions", status: false },
-                    { sub: "Second Degree Equations In Three Variables", status: false },
-                    { sub: "Reduction To Canonical Forms", status: false },
-                    { sub: "Straight Lines", status: false },
-                    { sub: "Shortest Distance Between Two Skew Lines", status: false },
-                    { sub: "Plane", status: false },
-                    { sub: "Sphere", status: false },
-                    { sub: "Cone", status: false },
-                    { sub: "Cylinder", status: false },
-                    { sub: "Paraboloid", status: false },
-                    { sub: "Ellipsoid", status: false },
-                    { sub: "Hyperboloid Of One And Two Sheets And Their Properties.", status: false }
-                ],
-                "ODE": [
-                    { sub: "Formulation Of Differential Equations", status: false },
-                    { sub: "Equations Of First Order And First Degree, Integrating Factor", status: false },
-                    { sub: "Orthogonal Trajectory", status: false },
-                    { sub: "Equations of First Order but not of First Degree", status: false },
-                    { sub: "Clairauts Equation , Singular Solution", status: false },
-                    { sub: "Second And Higher Order Linear Equations With Constant Coefficients", status: false },
-                    { sub: "Complementary Function, Particular Integral And General Solution", status: false },
-                    { sub: "Second Order Linear Equations With Variable Coefficients", status: false },
-                    { sub: "Euler-Cauchy Equation", status: false },
-                    { sub: "Determination Of Complete Solution When One Solution Is Known Using Method Of Variation Of Parameters", status: false },
-                    { sub: "Laplace And Inverse Laplace Transforms And Their Properties, Laplace Transforms Of Elementary Functions", status: false },
-                    { sub: "Application To Initial Value Problems For 2nd Order Linear Equations With Constant Coefficients.", status: false }
-                ],
-                "Vectors": [
-                    { sub: "Scalar and vector fields, differentiation of vector field of a scalar variable", status: false },
-                    { sub: "Gradient, divergence and curl in cartesian and cylindrical coordinates", status: false },
-                    { sub: "Higher order derivatives", status: false },
-                    { sub: "Vector identities and vector equation", status: false },
-                    { sub: "Application to geometry: Curves in space, curvature and torsion", status: false },
-                    { sub: "Serret-Frenet's formulae", status: false },
-                    { sub: "Green’s, Gauss and Stokes’ theorems.", status: false }
-                ],
-                "Dynamics and statics": [
-                    { sub: "Rectilinear motion, simple harmonic motion, motion in a plane, projectiles", status: false },
-                    { sub: "Constrained motion", status: false },
-                    { sub: "Work and energy, conservation of energy", status: false },
-                    { sub: "Kepler’s laws, orbits under central forces", status: false },
-                    { sub: "Equilibrium of a system of particles", status: false },
-                    { sub: "Work and potential energy, friction, Common catenary", status: false },
-                    { sub: "Principle of virtual work", status: false },
-                    { sub: "Stability of equilibrium, equilibrium of forces in three dimensions.", status: false }
-                ]
+                "Linear Algebra": [ { sub: "Vector spaces over R and C", status: false }, { sub: "Linear dependence and independence", status: false }, { sub: "Subspaces , Bases , Dimensions", status: false }, { sub: "Linear transformations", status: false }, { sub: "Rank and nullity , matrix of a linear transformation", status: false }, { sub: "Algebra of Matrices", status: false }, { sub: "Row and column reduction , Echelon form , Congruences and similarity", status: false }, { sub: "Rank of a matrix", status: false }, { sub: "Inverse of a matrix", status: false }, { sub: "Solution of system of linear equations", status: false }, { sub: "Eigenvalues and eigenvectors , characteristic polynomial", status: false }, { sub: "Cayley-Hamilton theorem", status: false }, { sub: "Symmetric , Skew Symmetric , Hermitian , Skey Hermitian , Orthogonal , unitary matrices and their eigenvalues", status: false } ],
+                "Calculus": [ { sub: "Real numbers, functions of a real variable, limits, continuity, differentiability, mean-value theorem, Taylor’s theorem with remainders, indeterminate forms, maxima and minima, asymptotes", status: false }, { sub: "Curve tracing", status: false }, { sub: "Functions of two or three variables", status: false }, { sub: "Limits, continuity, partial derivatives, maxima and minima, Lagrange’s method of multipliers, Jacobian. Riemann’s definition of definite integrals", status: false }, { sub: "Indefinite integrals", status: false }, { sub: "Infinite and improper integral", status: false }, { sub: "Double and triple integrals (evaluation techniques only)", status: false }, { sub: "Areas, surface and volumes.", status: false } ],
+                "Analytic Geometry": [ { sub: "Cartesian And Polar Coordinates In Three Dimensions", status: false }, { sub: "Second Degree Equations In Three Variables", status: false }, { sub: "Reduction To Canonical Forms", status: false }, { sub: "Straight Lines", status: false }, { sub: "Shortest Distance Between Two Skew Lines", status: false }, { sub: "Plane", status: false }, { sub: "Sphere", status: false }, { sub: "Cone", status: false }, { sub: "Cylinder", status: false }, { sub: "Paraboloid", status: false }, { sub: "Ellipsoid", status: false }, { sub: "Hyperboloid Of One And Two Sheets And Their Properties.", status: false } ],
+                "ODE": [ { sub: "Formulation Of Differential Equations", status: false }, { sub: "Equations Of First Order And First Degree, Integrating Factor", status: false }, { sub: "Orthogonal Trajectory", status: false }, { sub: "Equations of First Order but not of First Degree", status: false }, { sub: "Clairauts Equation , Singular Solution", status: false }, { sub: "Second And Higher Order Linear Equations With Constant Coefficients", status: false }, { sub: "Complementary Function, Particular Integral And General Solution", status: false }, { sub: "Second Order Linear Equations With Variable Coefficients", status: false }, { sub: "Euler-Cauchy Equation", status: false }, { sub: "Determination Of Complete Solution When One Solution Is Known Using Method Of Variation Of Parameters", status: false }, { sub: "Laplace And Inverse Laplace Transforms And Their Properties, Laplace Transforms Of Elementary Functions", status: false }, { sub: "Application To Initial Value Problems For 2nd Order Linear Equations With Constant Coefficients.", status: false } ],
+                "Vectors": [ { sub: "Scalar and vector fields, differentiation of vector field of a scalar variable", status: false }, { sub: "Gradient, divergence and curl in cartesian and cylindrical coordinates", status: false }, { sub: "Higher order derivatives", status: false }, { sub: "Vector identities and vector equation", status: false }, { sub: "Application to geometry: Curves in space, curvature and torsion", status: false }, { sub: "Serret-Frenet's formulae", status: false }, { sub: "Green’s, Gauss and Stokes’ theorems.", status: false } ],
+                "Dynamics and statics": [ { sub: "Rectilinear motion, simple harmonic motion, motion in a plane, projectiles", status: false }, { sub: "Constrained motion", status: false }, { sub: "Work and energy, conservation of energy", status: false }, { sub: "Kepler’s laws, orbits under central forces", status: false }, { sub: "Equilibrium of a system of particles", status: false }, { sub: "Work and potential energy, friction, Common catenary", status: false }, { sub: "Principle of virtual work", status: false }, { sub: "Stability of equilibrium, equilibrium of forces in three dimensions.", status: false } ]
             },
             "Maths P2": {
-                "Modern Algebra": [
-                    { sub: "Groups, subgroups, cyclic groups, cosets, Lagrange’s Theorem, normal subgroups, quotient groups, homomorphism of groups, basic isomorphism theorems, permutation groups, Cayley’s theorem", status: true },
-                    { sub: "Rings, subrings and ideals, homomorphisms of rings", status: true },
-                    { sub: "Integral domains, principal ideal domains, Euclidean domains and unique factorization domains", status: false },
-                    { sub: "Fields, quotient fields.", status: false }
-                ],
-                "Real Analysis": [
-                    { sub: "Real number system as an ordered field with least upper bound property", status: false },
-                    { sub: "Sequences, limit of a sequence, Cauchy sequence, completeness of real line", status: false },
-                    { sub: "Series and its convergence, absolute and conditional convergence of series of real and complex terms, rearrangement of series", status: false },
-                    { sub: "Continuity and uniform continuity of functions, properties of continuous functions on compact sets", status: false },
-                    { sub: "Riemann integral, improper integrals", status: false },
-                    { sub: "Fundamental theorems of integral calculus", status: false },
-                    { sub: "Uniform convergence, continuity, differentiability and integrability for sequences and series of functions", status: false },
-                    { sub: "Partial derivatives of functions of several (two or three) variables, maxima and minima", status: false }
-                ],
-                "Complex Analysis": [
-                    { sub: "Analytic function, Cauchy-Riemann equations, Cauchy's theorem, Cauchy's integral formula, representation of an analytic function", status: false },
-                    { sub: "Singularities", status: false },
-                    { sub: "Laurent’s series , Taylors Series , Power Series", status: false },
-                    { sub: "Cauchy’s residue theorem", status: false },
-                    { sub: "Contour integration.", status: false }
-                ],
-                "Linear Programming": [
-                    { sub: "Linear programming problems, basic solution, basic feasible solution and optimal solution", status: false },
-                    { sub: "Graphical method and simplex method of solutions", status: false },
-                    { sub: "Duality", status: false },
-                    { sub: "Transportation and assignment problems.", status: false }
-                ],
-                "PDE": [
-                    { sub: "Family of surfaces in three dimensions and formulation of partial differential equations", status: false },
-                    { sub: "Solution of quasilinear partial differential equations of the first order, Cauchy’s method of characteristics", status: false },
-                    { sub: "Linear partial differential equations of the second order with constant coefficients, canonical form", status: false },
-                    { sub: "Equation of a vibrating string, heat equation, Laplace equation and their solutions.", status: false }
-                ],
-                "Numerical Analysis and Computer Programming": [
-                    { sub: "Numerical methods: solution of algebraic and transcendental equations of one variable by bisection, Regula-Falsi and Newton-Raphson methods", status: false },
-                    { sub: "Solution of system of linear equations by Gaussian elimination and Gauss-Jordan (direct), Gauss-Seidel(iterative) methods", status: false },
-                    { sub: "Newton’s (forward and backward) interpolation, Lagrange’s interpolation", status: false },
-                    { sub: "Numerical integration: Trapezoidal rule, Simpson’s rules, Gaussian quadrature formula", status: false },
-                    { sub: "Numerical solution of ordinary differential equations: Euler and Runge Kutta-methods", status: false },
-                    { sub: "Computer Programming: Binary system", status: false },
-                    { sub: "Arithmetic and logical operations on numbers", status: false },
-                    { sub: "Octal and Hexadecimal systems", status: false },
-                    { sub: "Conversion to and from decimal systems", status: false },
-                    { sub: "Algebra of binary numbers", status: false },
-                    { sub: "Elements of computer systems and concept of memory", status: false },
-                    { sub: "Basic logic gates and truth tables, Boolean algebra, normal forms", status: false },
-                    { sub: "Representation of unsigned integers, signed integers and reals, double precision reals and long integers", status: false },
-                    { sub: "Algorithms and flow charts for solving numerical analysis problems.", status: false }
-                ],
-                "Mechanics and Fluid dynamics": [
-                    { sub: "Generalised coordinates", status: false },
-                    { sub: "D’Alembert’s principle and Lagrange’s equations", status: false },
-                    { sub: "Hamilton equations", status: false },
-                    { sub: "Moment of inertia", status: false },
-                    { sub: "Motion of rigid bodies in two dimensions", status: false },
-                    { sub: "Equation of continuity", status: false },
-                    { sub: "Euler’s equation of motion for inviscid flow", status: false },
-                    { sub: "Stream-lines, path of a particle", status: false },
-                    { sub: "Potential flow", status: false },
-                    { sub: "Two-dimensional and axisymmetric motion", status: false },
-                    { sub: "Sources and sinks, vortex motion", status: false },
-                    { sub: "Navier-Stokes equation for a viscous fluid.", status: false }
-                ]
+                "Modern Algebra": [ { sub: "Groups, subgroups, cyclic groups, cosets, Lagrange’s Theorem, normal subgroups, quotient groups, homomorphism of groups, basic isomorphism theorems, permutation groups, Cayley’s theorem", status: true }, { sub: "Rings, subrings and ideals, homomorphisms of rings", status: true }, { sub: "Integral domains, principal ideal domains, Euclidean domains and unique factorization domains", status: false }, { sub: "Fields, quotient fields.", status: false } ],
+                "Real Analysis": [ { sub: "Real number system as an ordered field with least upper bound property", status: false }, { sub: "Sequences, limit of a sequence, Cauchy sequence, completeness of real line", status: false }, { sub: "Series and its convergence, absolute and conditional convergence of series of real and complex terms, rearrangement of series", status: false }, { sub: "Continuity and uniform continuity of functions, properties of continuous functions on compact sets", status: false }, { sub: "Riemann integral, improper integrals", status: false }, { sub: "Fundamental theorems of integral calculus", status: false }, { sub: "Uniform convergence, continuity, differentiability and integrability for sequences and series of functions", status: false }, { sub: "Partial derivatives of functions of several (two or three) variables, maxima and minima", status: false } ],
+                "Complex Analysis": [ { sub: "Analytic function, Cauchy-Riemann equations, Cauchy's theorem, Cauchy's integral formula, representation of an analytic function", status: false }, { sub: "Singularities", status: false }, { sub: "Laurent’s series , Taylors Series , Power Series", status: false }, { sub: "Cauchy’s residue theorem", status: false }, { sub: "Contour integration.", status: false } ],
+                "Linear Programming": [ { sub: "Linear programming problems, basic solution, basic feasible solution and optimal solution", status: false }, { sub: "Graphical method and simplex method of solutions", status: false }, { sub: "Duality", status: false }, { sub: "Transportation and assignment problems.", status: false } ],
+                "PDE": [ { sub: "Family of surfaces in three dimensions and formulation of partial differential equations", status: false }, { sub: "Solution of quasilinear partial differential equations of the first order, Cauchy’s method of characteristics", status: false }, { sub: "Linear partial differential equations of the second order with constant coefficients, canonical form", status: false }, { sub: "Equation of a vibrating string, heat equation, Laplace equation and their solutions.", status: false } ],
+                "Numerical Analysis and Computer Programming": [ { sub: "Numerical methods: solution of algebraic and transcendental equations of one variable by bisection, Regula-Falsi and Newton-Raphson methods", status: false }, { sub: "Solution of system of linear equations by Gaussian elimination and Gauss-Jordan (direct), Gauss-Seidel(iterative) methods", status: false }, { sub: "Newton’s (forward and backward) interpolation, Lagrange’s interpolation", status: false }, { sub: "Numerical integration: Trapezoidal rule, Simpson’s rules, Gaussian quadrature formula", status: false }, { sub: "Numerical solution of ordinary differential equations: Euler and Runge Kutta-methods", status: false }, { sub: "Computer Programming: Binary system", status: false }, { sub: "Arithmetic and logical operations on numbers", status: false }, { sub: "Octal and Hexadecimal systems", status: false }, { sub: "Conversion to and from decimal systems", status: false }, { sub: "Algebra of binary numbers", status: false }, { sub: "Elements of computer systems and concept of memory", status: false }, { sub: "Basic logic gates and truth tables, Boolean algebra, normal forms", status: false }, { sub: "Representation of unsigned integers, signed integers and reals, double precision reals and long integers", status: false }, { sub: "Algorithms and flow charts for solving numerical analysis problems.", status: false } ],
+                "Mechanics and Fluid dynamics": [ { sub: "Generalised coordinates", status: false }, { sub: "D’Alembert’s principle and Lagrange’s equations", status: false }, { sub: "Hamilton equations", status: false }, { sub: "Moment of inertia", status: false }, { sub: "Motion of rigid bodies in two dimensions", status: false }, { sub: "Equation of continuity", status: false }, { sub: "Euler’s equation of motion for inviscid flow", status: false }, { sub: "Stream-lines, path of a particle", status: false }, { sub: "Potential flow", status: false }, { sub: "Two-dimensional and axisymmetric motion", status: false }, { sub: "Sources and sinks, vortex motion", status: false }, { sub: "Navier-Stokes equation for a viscous fluid.", status: false } ]
             }
         };
 
@@ -654,43 +463,131 @@
         const TODAY = new Date("2026-06-21T00:00:00"); 
         const TODAY_STR = "2026-06-21";
         
-        let appData, calendarData, timeData, counters;
+        // App State
+        let appData, calendarData, timeData, counters, notesData;
+        
+        // Timer State (Robust Background Timers)
+        let timerState = { swRunning: false, swTime: 0, pomoRunning: false, pomoMode: 'work', pomoTime: 25*60, lastTick: Date.now() };
+
         let currentSubject = "GS3"; 
         let doughnutChartInst = null; let barChartInst = null; let syllabusSubjectChartInst = null; let timeChartInst = null;
         let logDisplayMonth = TODAY.getMonth();
         let logDisplayYear = TODAY.getFullYear();
+        let currentNotesDateStr = TODAY_STR;
 
         window.onload = function() {
             document.getElementById('current-date').textContent = "📅 21 Jun 2026";
             
-            // Clean load with exact data -> v7 Bump to ensure cache wipe
             appData = JSON.parse(localStorage.getItem('upsc_data_v7')) || initialRawData;
-            calendarData = JSON.parse(localStorage.getItem('upsc_cal_v4')) || {};
+            
+            calendarData = JSON.parse(localStorage.getItem('upsc_cal_v5')) || {};
+            for (let date in calendarData) {
+                if (calendarData[date].tasks) {
+                    calendarData[date].tasks.forEach(t => {
+                        if (t.done !== undefined) { t.status = t.done ? 'done' : 'todo'; delete t.done; }
+                        if (!t.status) t.status = 'todo';
+                    });
+                }
+            }
+
             timeData = JSON.parse(localStorage.getItem('upsc_time_v4')) || { "2026-06-20": 12 * 3600, "2026-06-21": 0 };
             if(!timeData[TODAY_STR]) timeData[TODAY_STR] = 0; 
+            
+            notesData = JSON.parse(localStorage.getItem('upsc_notes_v1')) || {};
+            if(!notesData[TODAY_STR]) notesData[TODAY_STR] = "";
 
             counters = JSON.parse(localStorage.getItem('upsc_counters_v5')) || {
                 lastDate: TODAY_STR, aw10: 0, aw15: 0, awTotal: 0, pyq: 0, essay: 0
             };
 
-            // ONLY reset Daily counters.
             if (counters.lastDate !== TODAY_STR) {
-                counters.aw10 = 0; 
-                counters.aw15 = 0;
+                counters.aw10 = 0; counters.aw15 = 0;
                 counters.lastDate = TODAY_STR;
                 localStorage.setItem('upsc_counters_v5', JSON.stringify(counters));
             }
 
-            if (typeof Chart !== 'undefined') {
-                Chart.defaults.color = '#9ca3af'; 
-                Chart.defaults.borderColor = '#444444';
+            if (typeof Chart !== 'undefined') { Chart.defaults.color = '#9ca3af'; Chart.defaults.borderColor = '#444444'; }
+
+            // Init Advanced Background Timers
+            timerState = JSON.parse(localStorage.getItem('upsc_timer_state_v2')) || {
+                swRunning: false, swTime: 0, pomoRunning: false, pomoMode: 'work', pomoTime: 25 * 60, lastTick: Date.now()
+            };
+
+            // Catch up missed time while tab was closed/inactive
+            let now = Date.now();
+            let missedSec = Math.max(0, (now - timerState.lastTick) / 1000);
+            
+            if (timerState.swRunning) {
+                timerState.swTime += missedSec;
+                timeData[TODAY_STR] += missedSec;
             }
 
-            renderDashboard();
-            updatePomoSettings();
-            updateSwDisplay();
-            renderTimeLogs();
+            if (timerState.pomoRunning) {
+                timerState.pomoTime -= missedSec;
+                if (timerState.pomoMode === 'work') {
+                    let eff = missedSec;
+                    if(timerState.pomoTime < 0) eff += timerState.pomoTime; 
+                    timeData[TODAY_STR] += eff;
+                }
+                if (timerState.pomoTime <= 0) {
+                    timerState.pomoTime = 0;
+                    timerState.pomoRunning = false;
+                }
+            }
+            
+            timerState.lastTick = now;
+            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
+            localStorage.setItem('upsc_time_v4', JSON.stringify(timeData));
+
+            syncTimerUI();
+            startBackgroundTick();
+
+            renderDashboard(); renderTimeLogs(); renderNotes();
         };
+
+        // Unified Tick System
+        function startBackgroundTick() {
+            setInterval(() => {
+                let now = Date.now();
+                let delta = (now - timerState.lastTick) / 1000;
+                timerState.lastTick = now;
+                let dirty = false;
+
+                if (timerState.swRunning) {
+                    timerState.swTime += delta;
+                    timeData[TODAY_STR] += delta;
+                    dirty = true;
+                    updateSwDisplay();
+                }
+
+                if (timerState.pomoRunning) {
+                    timerState.pomoTime -= delta;
+                    if (timerState.pomoMode === 'work') timeData[TODAY_STR] += delta;
+                    
+                    if (timerState.pomoTime <= 0) {
+                        timerState.pomoTime = 0;
+                        timerState.pomoRunning = false;
+                        alert(timerState.pomoMode === 'work' ? "Session complete!" : "Break over!");
+                        switchPomoMode(timerState.pomoMode === 'work' ? 'break' : 'work');
+                    }
+                    dirty = true;
+                    updatePomoDisplay();
+                }
+
+                if (dirty) {
+                    localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
+                    // Write to localstorage array every ~5 sec to avoid excessive I/O
+                    if(Math.floor(now/1000) % 5 === 0) {
+                        localStorage.setItem('upsc_time_v4', JSON.stringify(timeData));
+                        if(logDisplayMonth === TODAY.getMonth() && logDisplayYear === TODAY.getFullYear()) renderTimeLogs();
+                        renderCalendar(); 
+                    }
+                    updateGlobalTimeUI();
+                } else {
+                    localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
+                }
+            }, 1000);
+        }
 
         function switchTab(viewId) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -702,6 +599,37 @@
             if (viewId === 'syllabus') { renderSyllabusNavigation(); renderSyllabusCards(); }
             if (viewId === 'calendar') renderCalendar();
             if (viewId === 'timer') renderTimeLogs();
+            if (viewId === 'notes') renderNotes();
+        }
+
+        // ==========================================
+        // NOTES
+        // ==========================================
+        function renderNotes() {
+            document.getElementById('notes-date-label').textContent = currentNotesDateStr;
+            document.getElementById('notes-textarea').value = notesData[currentNotesDateStr] || "";
+        }
+
+        function changeNoteDate(dir) {
+            let d = new Date(currentNotesDateStr);
+            d.setDate(d.getDate() + dir);
+            currentNotesDateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
+            renderNotes();
+        }
+
+        function saveNote() {
+            notesData[currentNotesDateStr] = document.getElementById('notes-textarea').value;
+            localStorage.setItem('upsc_notes_v1', JSON.stringify(notesData));
+        }
+
+        function exportNotes() {
+            const dataStr = JSON.stringify(notesData, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = "UPSC_Journal_Notes.json";
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         // ==========================================
@@ -710,23 +638,17 @@
         function updateCounter(type, change) {
             counters[type] += change;
             if(counters[type] < 0) counters[type] = 0;
-            
             if(type === 'aw10' || type === 'aw15') {
-                counters.awTotal += change;
-                if(counters.awTotal < 0) counters.awTotal = 0;
+                counters.awTotal += change; if(counters.awTotal < 0) counters.awTotal = 0;
                 document.getElementById('val-awTotal').textContent = counters.awTotal;
             }
-            
             document.getElementById('val-' + type).textContent = counters[type];
             localStorage.setItem('upsc_counters_v5', JSON.stringify(counters));
         }
 
         function initCounters() {
-            document.getElementById('val-aw10').textContent = counters.aw10;
-            document.getElementById('val-aw15').textContent = counters.aw15;
-            document.getElementById('val-awTotal').textContent = counters.awTotal;
-            document.getElementById('val-pyq').textContent = counters.pyq;
-            document.getElementById('val-essay').textContent = counters.essay;
+            document.getElementById('val-aw10').textContent = counters.aw10; document.getElementById('val-aw15').textContent = counters.aw15;
+            document.getElementById('val-awTotal').textContent = counters.awTotal; document.getElementById('val-pyq').textContent = counters.pyq; document.getElementById('val-essay').textContent = counters.essay;
         }
 
         function calculateStats() {
@@ -746,11 +668,9 @@
             initCounters();
             const stats = calculateStats();
             document.getElementById('top-topic-count').textContent = `📚 ${stats.completed} / ${stats.total} topics`;
-            
             const totalSecondsAllTime = Object.values(timeData).reduce((a, b) => a + b, 0);
             const todayHours = (timeData[TODAY_STR] / 3600).toFixed(2);
             document.getElementById('top-hours').textContent = `⏱ ${todayHours} hrs today`;
-            
             const daysDiff = Math.ceil((MAINS_DATE - TODAY) / (1000 * 60 * 60 * 24));
 
             const metrics = [
@@ -761,10 +681,7 @@
                 { title: "Total Tracked", value: `${(totalSecondsAllTime / 3600).toFixed(1)}h`, color: "val-blue" }
             ];
 
-            document.getElementById('metrics-container').innerHTML = metrics.map(m => `
-                <div class="metric-card"><div class="metric-title">${m.title}</div><div class="metric-value ${m.color}">${m.value}</div></div>
-            `).join('');
-
+            document.getElementById('metrics-container').innerHTML = metrics.map(m => `<div class="metric-card"><div class="metric-title">${m.title}</div><div class="metric-value ${m.color}">${m.value}</div></div>`).join('');
             updateCharts(stats);
         }
 
@@ -786,9 +703,7 @@
         // ==========================================
         function renderSyllabusNavigation() {
             const stats = calculateStats();
-            document.getElementById('subject-nav-container').innerHTML = Object.keys(appData).map(subj => `
-                <div class="subj-btn-hz ${subj === currentSubject ? 'active' : ''}" onclick="selectSubject('${subj}')">${subj} <span class="subj-percent-badge">${stats.subjectStats[subj].percent}%</span></div>
-            `).join('');
+            document.getElementById('subject-nav-container').innerHTML = Object.keys(appData).map(subj => `<div class="subj-btn-hz ${subj === currentSubject ? 'active' : ''}" onclick="selectSubject('${subj}')">${subj} <span class="subj-percent-badge">${stats.subjectStats[subj].percent}%</span></div>`).join('');
         }
 
         function selectSubject(subj) { currentSubject = subj; renderSyllabusNavigation(); renderSyllabusCards(); }
@@ -798,12 +713,8 @@
             for (const [mainTitle, subtopics] of Object.entries(appData[currentSubject])) {
                 let total = subtopics.length; let done = subtopics.filter(s => s.status).length;
                 let percent = total > 0 ? Math.round((done/total)*100) : 0;
-                
-                chartLabels.push(mainTitle.length > 20 ? mainTitle.substring(0, 20) + '...' : mainTitle); 
-                chartData.push(percent);
-                
+                chartLabels.push(mainTitle.length > 20 ? mainTitle.substring(0, 20) + '...' : mainTitle); chartData.push(percent);
                 const encTitle = encodeURIComponent(mainTitle);
-                
                 html += `<div class="main-topic-card" ondblclick="openTopicModal('${encTitle}')">
                     <div class="mtc-header"><div class="mtc-title">${mainTitle}</div>
                         <div class="mtc-progress"><span>${done} of ${total} Completed</span><span style="color: ${percent === 100 ? 'var(--accent-green)' : 'var(--accent-yellow)'}">${percent}%</span></div>
@@ -849,10 +760,16 @@
         }
 
         // ==========================================
-        // CALENDAR
+        // CALENDAR (3-STATE GOALS & EFFICIENCY)
         // ==========================================
         let currentMonth = TODAY.getMonth(); let currentYear = TODAY.getFullYear();
         let selectedDateStr = ""; let currentModalTasks = [];
+
+        function getStatusIcon(status) {
+            if (status === 'done') return '✅';
+            if (status === 'wip') return '🟡';
+            return '⭕'; // todo/incomplete
+        }
 
         function renderCalendar() {
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -865,42 +782,177 @@
             
             for(let i=1; i<=daysInMonth; i++) {
                 let dateStr = `${currentYear}-${String(currentMonth+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                let data = calendarData[dateStr] || { tasks: [], targetHrs: 0 };
+                let data = calendarData[dateStr] || { tasks: [], targetHrs: 0, closed: false };
                 let isToday = dateStr === TODAY_STR;
                 
-                let totalT = data.tasks.length; let doneT = data.tasks.filter(t => t.done).length;
-                let eff = totalT > 0 ? Math.round((doneT/totalT)*100) : 0;
-                let taskHtml = data.tasks.slice(0, 4).map(t => `<li><input type="checkbox" ${t.done ? 'checked' : ''}> <span style="${t.done ? 'text-decoration:line-through; opacity:0.5;' : ''}">${t.text.substring(0,20)}</span></li>`).join('');
+                // Efficiency Calculations
+                let totalT = data.tasks.length;
+                let goalScore = data.tasks.reduce((sum, t) => {
+                    if (t.status === 'done') return sum + 1;
+                    if (t.status === 'wip') return sum + 0.5;
+                    return sum;
+                }, 0);
+                let goalEff = totalT > 0 ? Math.round((goalScore / totalT) * 100) : 0;
+                
+                let actualHrs = (timeData[dateStr] || 0) / 3600;
+                let targetHrs = data.targetHrs || 0;
+                let hourEff = targetHrs > 0 ? Math.round((actualHrs / targetHrs) * 100) : 0;
 
-                grid.innerHTML += `<div class="calendar-day ${isToday ? 'today' : ''}" onclick="openModal('${dateStr}', ${i})">
-                        <div class="day-header"><span class="day-number">${i} ${isToday ? '(Today)' : ''}</span>${totalT > 0 ? `<span class="day-eff ${eff >= 80 ? 'val-green' : 'val-yellow'}">${eff}% Eff</span>` : ''}</div>
-                        <div class="day-plan"><ul class="task-list-mini">${taskHtml}</ul>${data.targetHrs > 0 ? `<div style="color:var(--accent-blue); margin-top:5px; font-size:0.75rem;">🎯 Target: ${data.targetHrs}h</div>` : ''}</div></div>`;
+                let taskHtml = data.tasks.slice(0, 4).map(t => {
+                    let styling = t.status === 'done' ? 'text-decoration:line-through; opacity:0.5;' : (t.status === 'wip' ? 'color: var(--accent-yellow);' : '');
+                    return `<li><span class="status-icon">${getStatusIcon(t.status)}</span> <span style="${styling}">${t.text.substring(0,20)}</span></li>`;
+                }).join('');
+
+                let tileHtml = `<div class="calendar-day ${isToday ? 'today' : ''} ${data.closed ? 'closed-day' : ''}" onclick="openModal('${dateStr}', ${i})">`;
+                if (data.closed) tileHtml += `<span class="closed-badge">🔒</span>`;
+                
+                tileHtml += `<div class="day-header"><span class="day-number">${i} ${isToday ? '(Today)' : ''}</span></div>`;
+                tileHtml += `<div class="day-plan"><ul class="task-list-mini">${taskHtml}</ul></div>`;
+                
+                if (data.closed) {
+                    tileHtml += `<div class="eff-panel">
+                        <div class="eff-row"><span style="color:var(--accent-blue)">Hr Eff:</span> <span style="color:${hourEff >= 80 ? 'var(--accent-green)' : 'var(--accent-yellow)'}">${hourEff}%</span></div>
+                        <div class="eff-row"><span style="color:var(--accent-blue)">Goal Eff:</span> <span style="color:${goalEff >= 80 ? 'var(--accent-green)' : 'var(--accent-yellow)'}">${goalEff}%</span></div>
+                    </div>`;
+                } else if (data.targetHrs > 0) {
+                    tileHtml += `<div style="color:var(--accent-blue); margin-top:5px; font-size:0.75rem;">🎯 Target: ${data.targetHrs}h</div>`;
+                }
+                
+                tileHtml += `</div>`;
+                grid.innerHTML += tileHtml;
             }
         }
 
         function changeMonth(dir) { currentMonth += dir; if(currentMonth > 11) { currentMonth = 0; currentYear++; } if(currentMonth < 0) { currentMonth = 11; currentYear--; } renderCalendar(); }
 
         function openModal(dateStr, dayNum) {
-            selectedDateStr = dateStr; let data = calendarData[dateStr] || { tasks: [], targetHrs: 0 };
+            selectedDateStr = dateStr; let data = calendarData[dateStr] || { tasks: [], targetHrs: 0, closed: false };
             currentModalTasks = JSON.parse(JSON.stringify(data.tasks)); 
             document.getElementById('modal-date-title').textContent = `Plan for ${dateStr}`;
-            document.getElementById('modal-target-hours').value = data.targetHrs;
+            document.getElementById('modal-target-hours').value = data.targetHrs || "";
+            document.getElementById('modal-day-closed').checked = data.closed || false;
             renderModalTasks(); document.getElementById('cal-modal').classList.add('active');
         }
 
         function renderModalTasks() {
-            document.getElementById('modal-task-list').innerHTML = currentModalTasks.map((t, idx) => `<li><input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleModalTask(${idx})"> <span style="${t.done ? 'text-decoration:line-through; opacity:0.5;' : ''}">${t.text}</span> <button class="btn btn-close" style="padding: 4px 8px; font-size: 0.8rem;" onclick="removeModalTask(${idx})">X</button></li>`).join('');
+            document.getElementById('modal-task-list').innerHTML = currentModalTasks.map((t, idx) => {
+                let styling = t.status === 'done' ? 'text-decoration:line-through; opacity:0.5;' : (t.status === 'wip' ? 'color: var(--accent-yellow);' : '');
+                return `<li>
+                    <button class="task-status-btn" onclick="cycleModalTaskState(${idx})">${getStatusIcon(t.status)}</button>
+                    <span style="${styling}">${t.text}</span>
+                    <button class="btn btn-close" style="padding: 4px 8px; font-size: 0.8rem;" onclick="removeModalTask(${idx})">X</button>
+                </li>`;
+            }).join('');
         }
 
-        function addModalTask() { const input = document.getElementById('modal-new-task'); if(input.value.trim() !== '') { currentModalTasks.push({ text: input.value.trim(), done: false }); input.value = ''; renderModalTasks(); } }
-        function toggleModalTask(idx) { currentModalTasks[idx].done = !currentModalTasks[idx].done; renderModalTasks(); }
+        function addModalTask() { 
+            const input = document.getElementById('modal-new-task'); 
+            if(input.value.trim() !== '') { 
+                currentModalTasks.push({ text: input.value.trim(), status: 'todo' }); 
+                input.value = ''; renderModalTasks(); 
+            } 
+        }
+        
+        function cycleModalTaskState(idx) { 
+            const states = ['todo', 'wip', 'done'];
+            let curr = currentModalTasks[idx].status || 'todo';
+            let nextIdx = (states.indexOf(curr) + 1) % 3;
+            currentModalTasks[idx].status = states[nextIdx];
+            renderModalTasks(); 
+        }
+        
         function removeModalTask(idx) { currentModalTasks.splice(idx, 1); renderModalTasks(); }
         function closeModal() { document.getElementById('cal-modal').classList.remove('active'); }
-        function saveDay() { calendarData[selectedDateStr] = { tasks: currentModalTasks, targetHrs: parseFloat(document.getElementById('modal-target-hours').value) || 0 }; localStorage.setItem('upsc_cal_v4', JSON.stringify(calendarData)); closeModal(); renderCalendar(); }
+        
+        function saveDay() { 
+            calendarData[selectedDateStr] = { 
+                tasks: currentModalTasks, 
+                targetHrs: parseFloat(document.getElementById('modal-target-hours').value) || 0,
+                closed: document.getElementById('modal-day-closed').checked
+            }; 
+            localStorage.setItem('upsc_cal_v5', JSON.stringify(calendarData)); 
+            closeModal(); renderCalendar(); 
+        }
 
         // ==========================================
-        // TIME TRACKER (EDITABLE MINI CALENDAR LOGS)
+        // TIME TRACKER (ROBUST STATE SYSTEM)
         // ==========================================
+        function syncTimerUI() {
+            const swBtn = document.getElementById('sw-btn');
+            if (timerState.swRunning) { swBtn.textContent = "PAUSE"; swBtn.classList.replace('btn-start', 'btn-pause'); } 
+            else { swBtn.textContent = timerState.swTime > 0 ? "RESUME" : "START"; swBtn.classList.replace('btn-pause', 'btn-start'); }
+            updateSwDisplay();
+
+            const pomoBtn = document.getElementById('pomo-btn');
+            if (timerState.pomoRunning) { pomoBtn.textContent = "PAUSE"; pomoBtn.classList.replace('btn-start', 'btn-pause'); } 
+            else { pomoBtn.textContent = timerState.pomoMode === 'work' ? "START WORK" : "START BREAK"; pomoBtn.classList.replace('btn-pause', 'btn-start'); }
+            updatePomoDisplay();
+        }
+
+        function updatePomoSettings() { 
+            if(!timerState.pomoRunning) { 
+                timerState.pomoTime = (parseInt(document.getElementById('pomo-w').value) || 25) * 60; 
+                localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
+                updatePomoDisplay(); 
+            } 
+        }
+
+        function updatePomoDisplay() { 
+            let m = Math.floor(timerState.pomoTime / 60); let s = Math.floor(timerState.pomoTime % 60); 
+            document.getElementById('pomo-display').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; 
+        }
+
+        function togglePomo() {
+            if (timerState.pomoRunning) {
+                timerState.pomoRunning = false;
+            } else {
+                timerState.pomoRunning = true;
+                timerState.lastTick = Date.now();
+            }
+            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
+            syncTimerUI();
+        }
+
+        function switchPomoMode(mode) { 
+            timerState.pomoRunning = false;
+            timerState.pomoMode = mode; 
+            timerState.pomoTime = mode === 'work' ? (parseInt(document.getElementById('pomo-w').value) || 25) * 60 : (parseInt(document.getElementById('pomo-sb').value) || 5) * 60; 
+            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
+            syncTimerUI();
+        }
+
+        function resetPomo() { switchPomoMode('work'); }
+
+        function updateSwDisplay() { 
+            let h = Math.floor(timerState.swTime / 3600); let m = Math.floor((timerState.swTime % 3600) / 60); let s = Math.floor(timerState.swTime % 60); 
+            document.getElementById('stopwatch-display').textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; 
+        }
+
+        function toggleStopwatch() {
+            if(timerState.swRunning) {
+                timerState.swRunning = false;
+            } else {
+                timerState.swRunning = true;
+                timerState.lastTick = Date.now();
+            }
+            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
+            syncTimerUI();
+        }
+
+        function resetStopwatch() { 
+            timerState.swRunning = false; 
+            timerState.swTime = 0; 
+            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
+            syncTimerUI();
+        }
+
+        function updateGlobalTimeUI() { 
+            let todayHrs = (timeData[TODAY_STR] / 3600).toFixed(2); 
+            document.getElementById('today-total-time').textContent = `${todayHrs} hrs`; 
+            document.getElementById('top-hours').textContent = `⏱ ${todayHrs} hrs today`; 
+        }
+
+        // Editable Logs System
         function changeLogMonth(dir) {
             logDisplayMonth += dir;
             if(logDisplayMonth > 11) { logDisplayMonth = 0; logDisplayYear++; }
@@ -913,8 +965,7 @@
             if(isNaN(seconds) || seconds < 0) seconds = 0;
             timeData[dateStr] = seconds;
             localStorage.setItem('upsc_time_v4', JSON.stringify(timeData));
-            renderTimeLogs(); 
-            updateGlobalTimeUI(); 
+            renderTimeLogs(); updateGlobalTimeUI(); renderCalendar(); 
         }
 
         function renderTimeLogs() {
@@ -926,19 +977,11 @@
             const listContainer = document.getElementById('editable-logs-list');
             
             let html = '<div class="mini-calendar-grid">';
-            
             const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-            daysOfWeek.forEach(d => {
-                html += `<div class="mini-day-name">${d}</div>`;
-            });
-
-            for(let i = 0; i < firstDay; i++) {
-                html += `<div class="mini-cal-day empty"></div>`;
-            }
+            daysOfWeek.forEach(d => { html += `<div class="mini-day-name">${d}</div>`; });
+            for(let i = 0; i < firstDay; i++) { html += `<div class="mini-cal-day empty"></div>`; }
             
-            let monthTotalSec = 0;
-            let chartLabels = [];
-            let chartData = [];
+            let monthTotalSec = 0; let chartLabels = []; let chartData = [];
 
             for(let i = 1; i <= daysInMonth; i++) {
                 let dateStr = `${logDisplayYear}-${String(logDisplayMonth+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
@@ -952,14 +995,11 @@
                 chartLabels.push(String(i));
                 chartData.push(seconds > 0 ? (seconds / 3600).toFixed(2) : 0);
 
-                html += `
-                    <div class="mini-cal-day ${isToday ? 'today' : ''}">
+                html += `<div class="mini-cal-day ${isToday ? 'today' : ''}">
                         <span class="mini-cal-date">${i}</span>
                         <input type="number" class="mini-cal-input" step="0.1" min="0" value="${hrs}" placeholder="-" onchange="updateManualLog('${dateStr}', this.value)">
-                    </div>
-                `;
+                    </div>`;
             }
-            
             html += '</div>';
             listContainer.innerHTML = html;
 
@@ -972,61 +1012,7 @@
             if (typeof Chart === 'undefined') return;
             const ctx = document.getElementById('timeChart').getContext('2d');
             if(timeChartInst) timeChartInst.destroy();
-            timeChartInst = new Chart(ctx, { 
-                type: 'bar', 
-                data: { labels: labels, datasets: [{ label: 'Hours', data: data, backgroundColor: '#facc15', borderRadius: 4 }] }, 
-                options: { 
-                    responsive: true, maintainAspectRatio: false, 
-                    scales: { 
-                        y: { beginAtZero: true, suggestedMax: 10, ticks: { color: '#9ca3af' }, grid: { color: '#444444' } }, 
-                        x: { ticks: { color: '#9ca3af' }, grid: { display: false } } 
-                    }, 
-                    plugins: { legend: { display: false } } 
-                } 
-            });
-        }
-
-        let pomoInterval = null; let pomoTime = 25 * 60; let pomoRunning = false; let pomoMode = 'work';
-        function updatePomoSettings() { if(!pomoRunning) { pomoTime = (parseInt(document.getElementById('pomo-w').value) || 25) * 60; updatePomoDisplay(); } }
-        function updatePomoDisplay() { let m = Math.floor(pomoTime / 60); let s = pomoTime % 60; document.getElementById('pomo-display').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; updateGlobalTimeUI(); }
-        function togglePomo() {
-            const btn = document.getElementById('pomo-btn');
-            if (pomoRunning) { clearInterval(pomoInterval); btn.textContent = pomoMode === 'work' ? "RESUME" : "RESUME BREAK"; btn.classList.replace('btn-pause', 'btn-start');
-            } else { btn.textContent = "PAUSE"; btn.classList.replace('btn-start', 'btn-pause');
-                pomoInterval = setInterval(() => {
-                    if (pomoTime > 0) { pomoTime--; if(pomoMode === 'work') logTimeTick(); updatePomoDisplay();
-                    } else { clearInterval(pomoInterval); alert(pomoMode === 'work' ? "Session complete!" : "Break over!"); pomoRunning = false; switchPomoMode(pomoMode === 'work' ? 'break' : 'work'); }
-                }, 1000);
-            }
-            pomoRunning = !pomoRunning;
-        }
-        function switchPomoMode(mode) { pomoMode = mode; if(pomoRunning) { clearInterval(pomoInterval); pomoRunning = false; } pomoTime = mode === 'work' ? (parseInt(document.getElementById('pomo-w').value) || 25) * 60 : (parseInt(document.getElementById('pomo-sb').value) || 5) * 60; const btn = document.getElementById('pomo-btn'); btn.textContent = mode === 'work' ? "START WORK" : "START BREAK"; btn.classList.replace('btn-pause', 'btn-start'); updatePomoDisplay(); }
-        function resetPomo() { if(pomoRunning) { clearInterval(pomoInterval); pomoRunning = false; } switchPomoMode('work'); }
-
-        let swInterval = null; let swTime = 0; let swRunning = false;
-        function updateSwDisplay() { let h = Math.floor(swTime / 3600); let m = Math.floor((swTime % 3600) / 60); let s = swTime % 60; document.getElementById('stopwatch-display').textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; updateGlobalTimeUI(); }
-        function toggleStopwatch() {
-            const btn = document.getElementById('sw-btn');
-            if(swRunning) { clearInterval(swInterval); btn.textContent = "RESUME"; btn.classList.replace('btn-pause', 'btn-start');
-            } else { btn.textContent = "PAUSE"; btn.classList.replace('btn-start', 'btn-pause'); swInterval = setInterval(() => { swTime++; logTimeTick(); updateSwDisplay(); }, 1000); }
-            swRunning = !swRunning;
-        }
-        function resetStopwatch() { if(swRunning) { clearInterval(swInterval); swRunning = false; } swTime = 0; document.getElementById('sw-btn').textContent = "START"; document.getElementById('sw-btn').classList.replace('btn-pause', 'btn-start'); updateSwDisplay(); }
-
-        function logTimeTick() { 
-            timeData[TODAY_STR]++; 
-            if(timeData[TODAY_STR] % 10 === 0) { 
-                localStorage.setItem('upsc_time_v4', JSON.stringify(timeData)); 
-                if(logDisplayMonth === TODAY.getMonth() && logDisplayYear === TODAY.getFullYear()) {
-                    renderTimeLogs(); 
-                }
-            } 
-        }
-        
-        function updateGlobalTimeUI() { 
-            let todayHrs = (timeData[TODAY_STR] / 3600).toFixed(2); 
-            document.getElementById('today-total-time').textContent = `${todayHrs} hrs`; 
-            document.getElementById('top-hours').textContent = `⏱ ${todayHrs} hrs today`; 
+            timeChartInst = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Hours', data: data, backgroundColor: '#facc15', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, suggestedMax: 10, ticks: { color: '#9ca3af' }, grid: { color: '#444444' } }, x: { ticks: { color: '#9ca3af' }, grid: { display: false } } }, plugins: { legend: { display: false } } } });
         }
 
         function loadMusic() { let url = document.getElementById('music-url').value; if (url.includes('youtu.be/')) { url = `https://www.youtube.com/embed/${url.split('youtu.be/')[1].split('?')[0]}`; } else if (url.includes('watch?v=')) { url = `https://www.youtube.com/embed/${url.split('watch?v=')[1].split('&')[0]}`; } document.getElementById('music-iframe').src = url; }
