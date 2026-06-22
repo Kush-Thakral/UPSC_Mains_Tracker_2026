@@ -106,6 +106,7 @@
         .calendar-day:hover { border-color: var(--accent-blue); }
         .calendar-day.today { border: 2px solid var(--accent-yellow); background: rgba(250, 204, 21, 0.05); }
         
+        /* Closed Day Styling */
         .calendar-day.closed-day { opacity: 0.5; background-color: #1a1a1a; border-style: dashed; }
         .calendar-day.closed-day:hover { opacity: 0.8; }
         .closed-badge { position: absolute; top: 10px; right: 10px; font-size: 1.5rem; opacity: 0.3; }
@@ -131,23 +132,21 @@
         .task-ul li { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: var(--bg-color); padding: 8px; border-radius: 5px; }
         .task-ul span { flex: 1; font-size: 0.9rem; }
         
+        /* Interactive 3-State Buttons */
         .task-status-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; transition: 0.2s; }
         .task-status-btn:hover { background: rgba(255,255,255,0.1); }
         
         .modal-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px; }
 
-        /* --- Notes Tab Styles --- */
-        .notes-container { display: flex; flex-direction: column; height: 75vh; gap: 15px; }
-        .notes-header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 10px; border: 1px solid var(--border-color); }
-        .notes-nav { display: flex; align-items: center; gap: 15px; }
-        .notes-nav button { background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .notes-nav button:hover { background: #555; }
-        .notes-nav span { font-size: 1.2rem; font-weight: bold; color: var(--accent-blue); }
-        .notes-editor { flex: 1; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; color: var(--text-main); font-family: var(--font-family); font-size: 1rem; resize: none; outline: none; }
-        .notes-editor:focus { border-color: var(--accent-blue); }
+        /* --- Notes Tab Styles (New Left Panel) --- */
+        .note-date-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--card-bg); border-radius: 6px; cursor: pointer; transition: 0.2s; border: 1px solid var(--border-color); }
+        .note-date-row:hover { border-color: #777; background: #2a2a2a; }
+        .note-date-row.active { border-color: var(--accent-yellow); background: rgba(250, 204, 21, 0.05); color: var(--accent-yellow); font-weight: bold; }
+        
+        .notes-header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 15px; }
 
         /* --- Time Tracker Editable Logs & Charts --- */
-        .tracker-layout { display: flex; gap: 20px; margin-bottom: 20px; }
+        .tracker-layout { display: flex; gap: 20px; margin-bottom: 20px; height: 75vh; }
         
         .time-log-panel { width: 380px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; }
         .log-month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
@@ -277,7 +276,7 @@
 
     <div class="container" id="view-calendar">
         <div class="calendar-header">
-            <h2 id="calendar-month-year">June 2026</h2>
+            <h2 id="calendar-month-year">Month Year</h2>
             <div>
                 <button class="btn btn-close" onclick="changeMonth(-1)">Previous</button>
                 <button class="btn btn-close" onclick="changeMonth(1)">Next</button>
@@ -291,18 +290,27 @@
     </div>
 
     <div class="container" id="view-notes">
-        <div class="notes-container">
-            <div class="notes-header">
-                <div class="notes-nav">
-                    <button onclick="changeNoteDate(-1)">&#8592; Prev</button>
-                    <span id="notes-date-label">2026-06-21</span>
-                    <button onclick="changeNoteDate(1)">Next &#8594;</button>
+        <div class="tracker-layout">
+            
+            <div class="time-log-panel" style="width: 300px;">
+                <h3 style="margin-bottom: 15px; color: var(--text-main);">Journal Dates</h3>
+                <div class="log-month-nav">
+                    <button onclick="changeNotesMonth(-1)">&#8592;</button>
+                    <span id="notes-month-label">Jun 2026</span>
+                    <button onclick="changeNotesMonth(1)">&#8594;</button>
                 </div>
-                <div>
+                <div id="notes-date-list" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1;">
+                    </div>
+            </div>
+
+            <div class="timers-column" style="flex: 1;">
+                <div class="notes-header">
+                    <span id="notes-current-date-display" style="font-size: 1.3rem; font-weight: bold; color: var(--accent-yellow);">Select a date</span>
                     <button class="btn btn-save" onclick="exportNotes()">📥 Export JSON</button>
                 </div>
+                <textarea class="notes-editor" id="notes-textarea" placeholder="Write your daily journal here... Auto-saves as you type." oninput="saveNote()"></textarea>
             </div>
-            <textarea class="notes-editor" id="notes-textarea" placeholder="Write your daily journal here... Auto-saves as you type." oninput="saveNote()"></textarea>
+
         </div>
     </div>
 
@@ -365,7 +373,7 @@
         </div>
 
         <div class="chart-card">
-            <h3 id="time-chart-title" style="margin-bottom: 15px; color: var(--accent-blue);">Study Hours - Jun 2026</h3>
+            <h3 id="time-chart-title" style="margin-bottom: 15px; color: var(--accent-blue);">Study Hours</h3>
             <div class="canvas-container" style="height: 200px;">
                 <canvas id="timeChart"></canvas>
             </div>
@@ -409,7 +417,7 @@
     </div>
 
     <script>
-        // Unedited exact data structure
+        // Exact Data extracted verbatim from the CSV (Unedited)
         const initialRawData = {
             "GS1": {
                 "Salient aspects of Art, Architecture, Literature from Ancient to Modern Times": [ { sub: "Art", status: false }, { sub: "Architecture", status: false }, { sub: "Literature", status: false } ],
@@ -460,27 +468,39 @@
         };
 
         const MAINS_DATE = new Date("2026-08-21T00:00:00");
-        const TODAY = new Date("2026-06-21T00:00:00"); 
-        const TODAY_STR = "2026-06-21";
+        
+        // Dynamically get the exact current date
+        const TODAY = new Date(); 
+        const yyyy = TODAY.getFullYear();
+        const mm = String(TODAY.getMonth() + 1).padStart(2, '0');
+        const dd = String(TODAY.getDate()).padStart(2, '0');
+        const TODAY_STR = `${yyyy}-${mm}-${dd}`;
         
         // App State
         let appData, calendarData, timeData, counters, notesData;
-        
-        // Timer State (Robust Background Timers)
         let timerState = { swRunning: false, swTime: 0, pomoRunning: false, pomoMode: 'work', pomoTime: 25*60, lastTick: Date.now() };
 
         let currentSubject = "GS3"; 
         let doughnutChartInst = null; let barChartInst = null; let syllabusSubjectChartInst = null; let timeChartInst = null;
+        
         let logDisplayMonth = TODAY.getMonth();
         let logDisplayYear = TODAY.getFullYear();
+        
+        let notesDisplayMonth = TODAY.getMonth();
+        let notesDisplayYear = TODAY.getFullYear();
         let currentNotesDateStr = TODAY_STR;
 
         window.onload = function() {
-            document.getElementById('current-date').textContent = "📅 21 Jun 2026";
+            const displayDate = TODAY.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            document.getElementById('current-date').textContent = `📅 ${displayDate}`;
             
             appData = JSON.parse(localStorage.getItem('upsc_data_v7')) || initialRawData;
             
-            calendarData = JSON.parse(localStorage.getItem('upsc_cal_v5')) || {};
+            // Calendar Data Loading & Fallback Recovery for older versions
+            let savedCal = localStorage.getItem('upsc_cal_v6') || localStorage.getItem('upsc_cal_v5') || localStorage.getItem('upsc_cal_v4') || localStorage.getItem('upsc_cal_v3');
+            calendarData = savedCal ? JSON.parse(savedCal) : {};
+            
+            // Auto-migrate any boolean 'done' tasks to the new 3-state string status ('todo', 'wip', 'done')
             for (let date in calendarData) {
                 if (calendarData[date].tasks) {
                     calendarData[date].tasks.forEach(t => {
@@ -489,6 +509,7 @@
                     });
                 }
             }
+            localStorage.setItem('upsc_cal_v6', JSON.stringify(calendarData));
 
             timeData = JSON.parse(localStorage.getItem('upsc_time_v4')) || { "2026-06-20": 12 * 3600, "2026-06-21": 0 };
             if(!timeData[TODAY_STR]) timeData[TODAY_STR] = 0; 
@@ -508,12 +529,10 @@
 
             if (typeof Chart !== 'undefined') { Chart.defaults.color = '#9ca3af'; Chart.defaults.borderColor = '#444444'; }
 
-            // Init Advanced Background Timers
             timerState = JSON.parse(localStorage.getItem('upsc_timer_state_v2')) || {
                 swRunning: false, swTime: 0, pomoRunning: false, pomoMode: 'work', pomoTime: 25 * 60, lastTick: Date.now()
             };
 
-            // Catch up missed time while tab was closed/inactive
             let now = Date.now();
             let missedSec = Math.max(0, (now - timerState.lastTick) / 1000);
             
@@ -542,10 +561,9 @@
             syncTimerUI();
             startBackgroundTick();
 
-            renderDashboard(); renderTimeLogs(); renderNotes();
+            renderDashboard(); renderTimeLogs(); renderNotesSidebar(); renderNotesArea();
         };
 
-        // Unified Tick System
         function startBackgroundTick() {
             setInterval(() => {
                 let now = Date.now();
@@ -576,7 +594,6 @@
 
                 if (dirty) {
                     localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
-                    // Write to localstorage array every ~5 sec to avoid excessive I/O
                     if(Math.floor(now/1000) % 5 === 0) {
                         localStorage.setItem('upsc_time_v4', JSON.stringify(timeData));
                         if(logDisplayMonth === TODAY.getMonth() && logDisplayYear === TODAY.getFullYear()) renderTimeLogs();
@@ -599,27 +616,58 @@
             if (viewId === 'syllabus') { renderSyllabusNavigation(); renderSyllabusCards(); }
             if (viewId === 'calendar') renderCalendar();
             if (viewId === 'timer') renderTimeLogs();
-            if (viewId === 'notes') renderNotes();
+            if (viewId === 'notes') { renderNotesSidebar(); renderNotesArea(); }
         }
 
         // ==========================================
         // NOTES
         // ==========================================
-        function renderNotes() {
-            document.getElementById('notes-date-label').textContent = currentNotesDateStr;
-            document.getElementById('notes-textarea').value = notesData[currentNotesDateStr] || "";
+        function changeNotesMonth(dir) {
+            notesDisplayMonth += dir;
+            if(notesDisplayMonth > 11) { notesDisplayMonth = 0; notesDisplayYear++; }
+            if(notesDisplayMonth < 0) { notesDisplayMonth = 11; notesDisplayYear--; }
+            renderNotesSidebar();
         }
 
-        function changeNoteDate(dir) {
+        function renderNotesSidebar() {
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            document.getElementById('notes-month-label').textContent = `${monthNames[notesDisplayMonth]} ${notesDisplayYear}`;
+            
+            const daysInMonth = new Date(notesDisplayYear, notesDisplayMonth + 1, 0).getDate();
+            const listContainer = document.getElementById('notes-date-list');
+            let html = '';
+            
+            // Loop backwards so the newest date is at the top of the list
+            for(let i = daysInMonth; i >= 1; i--) {
+                let dStr = `${notesDisplayYear}-${String(notesDisplayMonth+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                let hasNote = notesData[dStr] && notesData[dStr].trim().length > 0;
+                let isActive = (dStr === currentNotesDateStr);
+                let isToday = (dStr === TODAY_STR);
+                
+                html += `<div class="note-date-row ${isActive ? 'active' : ''}" onclick="selectNoteDate('${dStr}')">
+                    <span>${i}${getOrdinal(i)} ${monthNames[notesDisplayMonth]} ${isToday ? '(Today)' : ''}</span>
+                    <span>${hasNote ? '📝' : ''}</span>
+                </div>`;
+            }
+            listContainer.innerHTML = html;
+        }
+
+        function selectNoteDate(dStr) {
+            currentNotesDateStr = dStr;
+            renderNotesSidebar();
+            renderNotesArea();
+        }
+
+        function renderNotesArea() {
             let d = new Date(currentNotesDateStr);
-            d.setDate(d.getDate() + dir);
-            currentNotesDateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2, '0') + "-" + String(d.getDate()).padStart(2, '0');
-            renderNotes();
+            document.getElementById('notes-current-date-display').textContent = d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'});
+            document.getElementById('notes-textarea').value = notesData[currentNotesDateStr] || "";
         }
 
         function saveNote() {
             notesData[currentNotesDateStr] = document.getElementById('notes-textarea').value;
             localStorage.setItem('upsc_notes_v1', JSON.stringify(notesData));
+            renderNotesSidebar(); // live updates the pencil icon
         }
 
         function exportNotes() {
@@ -768,7 +816,7 @@
         function getStatusIcon(status) {
             if (status === 'done') return '✅';
             if (status === 'wip') return '🟡';
-            return '⭕'; // todo/incomplete
+            return '⭕'; 
         }
 
         function renderCalendar() {
@@ -785,7 +833,6 @@
                 let data = calendarData[dateStr] || { tasks: [], targetHrs: 0, closed: false };
                 let isToday = dateStr === TODAY_STR;
                 
-                // Efficiency Calculations
                 let totalT = data.tasks.length;
                 let goalScore = data.tasks.reduce((sum, t) => {
                     if (t.status === 'done') return sum + 1;
@@ -870,7 +917,7 @@
                 targetHrs: parseFloat(document.getElementById('modal-target-hours').value) || 0,
                 closed: document.getElementById('modal-day-closed').checked
             }; 
-            localStorage.setItem('upsc_cal_v5', JSON.stringify(calendarData)); 
+            localStorage.setItem('upsc_cal_v6', JSON.stringify(calendarData)); 
             closeModal(); renderCalendar(); 
         }
 
@@ -903,22 +950,14 @@
         }
 
         function togglePomo() {
-            if (timerState.pomoRunning) {
-                timerState.pomoRunning = false;
-            } else {
-                timerState.pomoRunning = true;
-                timerState.lastTick = Date.now();
-            }
-            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
-            syncTimerUI();
+            if (timerState.pomoRunning) { timerState.pomoRunning = false; } else { timerState.pomoRunning = true; timerState.lastTick = Date.now(); }
+            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState)); syncTimerUI();
         }
 
         function switchPomoMode(mode) { 
-            timerState.pomoRunning = false;
-            timerState.pomoMode = mode; 
+            timerState.pomoRunning = false; timerState.pomoMode = mode; 
             timerState.pomoTime = mode === 'work' ? (parseInt(document.getElementById('pomo-w').value) || 25) * 60 : (parseInt(document.getElementById('pomo-sb').value) || 5) * 60; 
-            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
-            syncTimerUI();
+            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState)); syncTimerUI();
         }
 
         function resetPomo() { switchPomoMode('work'); }
@@ -929,21 +968,13 @@
         }
 
         function toggleStopwatch() {
-            if(timerState.swRunning) {
-                timerState.swRunning = false;
-            } else {
-                timerState.swRunning = true;
-                timerState.lastTick = Date.now();
-            }
-            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
-            syncTimerUI();
+            if(timerState.swRunning) { timerState.swRunning = false; } else { timerState.swRunning = true; timerState.lastTick = Date.now(); }
+            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState)); syncTimerUI();
         }
 
         function resetStopwatch() { 
-            timerState.swRunning = false; 
-            timerState.swTime = 0; 
-            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState));
-            syncTimerUI();
+            timerState.swRunning = false; timerState.swTime = 0; 
+            localStorage.setItem('upsc_timer_state_v2', JSON.stringify(timerState)); syncTimerUI();
         }
 
         function updateGlobalTimeUI() { 
@@ -952,7 +983,6 @@
             document.getElementById('top-hours').textContent = `⏱ ${todayHrs} hrs today`; 
         }
 
-        // Editable Logs System
         function changeLogMonth(dir) {
             logDisplayMonth += dir;
             if(logDisplayMonth > 11) { logDisplayMonth = 0; logDisplayYear++; }
@@ -1014,6 +1044,8 @@
             if(timeChartInst) timeChartInst.destroy();
             timeChartInst = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Hours', data: data, backgroundColor: '#facc15', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, suggestedMax: 10, ticks: { color: '#9ca3af' }, grid: { color: '#444444' } }, x: { ticks: { color: '#9ca3af' }, grid: { display: false } } }, plugins: { legend: { display: false } } } });
         }
+
+        function getOrdinal(n) { if (n > 3 && n < 21) return 'th'; switch (n % 10) { case 1: return "st"; case 2: return "nd"; case 3: return "rd"; default: return "th"; } }
 
         function loadMusic() { let url = document.getElementById('music-url').value; if (url.includes('youtu.be/')) { url = `https://www.youtube.com/embed/${url.split('youtu.be/')[1].split('?')[0]}`; } else if (url.includes('watch?v=')) { url = `https://www.youtube.com/embed/${url.split('watch?v=')[1].split('&')[0]}`; } document.getElementById('music-iframe').src = url; }
 
